@@ -39,7 +39,7 @@ const SafetyRing: React.FC<SafetyRingProps> = ({ score }) => {
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          className={transition-all duration-1000 ease-in-out ${getColor()}}
+          className={`transition-all duration-1000 ease-in-out ${getColor()}`} // Corrected this line
         />
       </svg>
       
@@ -51,11 +51,11 @@ const SafetyRing: React.FC<SafetyRingProps> = ({ score }) => {
       
       {/* Glowing dot at current position */}
       <div 
-        className={absolute w-3 h-3 rounded-full ${getColor()} animate-pulse-soft}
+        className={`absolute w-3 h-3 rounded-full ${getColor()} animate-pulse-soft`} // Corrected this line
         style={{
           top: '50%',
           left: '50%',
-          transform: rotate(${(score / 100) * 360}deg) translate(45px, 0) translate(-50%, -50%),
+          transform: `rotate(${(score / 100) * 360}deg) translate(45px, 0) translate(-50%, -50%)`, // Corrected transform syntax
         }}
       />
     </div>
