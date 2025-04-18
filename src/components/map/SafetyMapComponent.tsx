@@ -42,7 +42,7 @@ const SafetyMapComponent: React.FC = () => {
       center={position} // Use live location if available
       zoom={13}
       style={{
-        height: '300px', // Set the height of the map
+        height: '250px', // Set the height of the map
         width: '100%',   // Make the map full width
         borderRadius: '15px', // Apply curved edges
         overflow: 'hidden', // Ensure content doesn't overflow the curved edges
