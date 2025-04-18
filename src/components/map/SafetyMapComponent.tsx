@@ -41,7 +41,14 @@ const SafetyMapComponent: React.FC = () => {
     <MapContainer
       center={position} // Use live location if available
       zoom={13}
-      style={{ height: '500px', width: '100%' }} // Make the map smaller
+      style={{
+        height: '300px', // Set the height of the map
+        width: '100%',   // Make the map full width
+        borderRadius: '15px', // Apply curved edges
+        overflow: 'hidden', // Ensure content doesn't overflow the curved edges
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', // Optional: Add a shadow for a card-like effect
+        border: '2px solid #ddd', // Optional: Add a subtle border around the map
+      }}
     >
       <TileLayer
         attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
@@ -55,4 +62,3 @@ const SafetyMapComponent: React.FC = () => {
 };
 
 export default SafetyMapComponent;
-
