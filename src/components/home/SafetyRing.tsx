@@ -23,7 +23,7 @@ const SafetyRing: React.FC<SafetyRingProps> = ({ score }) => {
         <circle
           cx="50"
           cy="50"
-          r="40"  {/* Reduced radius */}
+          r="40"  // Reduced radius
           fill="none"
           stroke="rgba(255, 255, 255, 0.1)"
           strokeWidth="6"
@@ -32,7 +32,7 @@ const SafetyRing: React.FC<SafetyRingProps> = ({ score }) => {
         <circle
           cx="50"
           cy="50"
-          r="40"  {/* Reduced radius */}
+          r="40"  // Reduced radius
           fill="none"
           stroke="currentColor"
           strokeWidth="6"
@@ -55,7 +55,7 @@ const SafetyRing: React.FC<SafetyRingProps> = ({ score }) => {
         style={{
           top: '50%',
           left: '50%',
-          transform: `rotate(${(score / 100) * 360}deg) translate(40px, 0) translate(-50%, -50%)`, {/* Adjusted position for smaller circle */}
+          transform: `rotate(${(score / 100) * 360}deg) translate(40px, 0) translate(-50%, -50%)`,  // Adjusted position for smaller circle
         }}
       />
     </div>
