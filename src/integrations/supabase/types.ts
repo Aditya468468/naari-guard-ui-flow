@@ -9,7 +9,239 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      emergency_logs: {
+        Row: {
+          created_at: string | null
+          id: string
+          location: Json | null
+          resolved_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          location?: Json | null
+          resolved_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          location?: Json | null
+          resolved_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      safe_routes: {
+        Row: {
+          created_at: string | null
+          distance: string
+          end_location: string
+          estimated_time: string
+          id: string
+          name: string
+          route_data: Json | null
+          safety_score: number
+          start_location: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          distance: string
+          end_location: string
+          estimated_time: string
+          id?: string
+          name: string
+          route_data?: Json | null
+          safety_score: number
+          start_location: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          distance?: string
+          end_location?: string
+          estimated_time?: string
+          id?: string
+          name?: string
+          route_data?: Json | null
+          safety_score?: number
+          start_location?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      safety_notes: {
+        Row: {
+          created_at: string | null
+          id: string
+          location: string
+          note: string
+          reports_count: number
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          location: string
+          note: string
+          reports_count?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          location?: string
+          note?: string
+          reports_count?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      safety_reviews: {
+        Row: {
+          comment: string
+          created_at: string | null
+          downvotes: number
+          id: string
+          location: string
+          rating: number
+          time: string
+          updated_at: string | null
+          upvotes: number
+          user_id: string | null
+        }
+        Insert: {
+          comment: string
+          created_at?: string | null
+          downvotes?: number
+          id?: string
+          location: string
+          rating: number
+          time: string
+          updated_at?: string | null
+          upvotes?: number
+          user_id?: string | null
+        }
+        Update: {
+          comment?: string
+          created_at?: string | null
+          downvotes?: number
+          id?: string
+          location?: string
+          rating?: number
+          time?: string
+          updated_at?: string | null
+          upvotes?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      trust_circle: {
+        Row: {
+          contact_email: string | null
+          contact_name: string
+          contact_phone: string
+          created_at: string | null
+          id: string
+          priority: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_name: string
+          contact_phone: string
+          created_at?: string | null
+          id?: string
+          priority?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          contact_email?: string | null
+          contact_name?: string
+          contact_phone?: string
+          created_at?: string | null
+          id?: string
+          priority?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          created_at: string | null
+          emergency_contacts: Json | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          phone_number: string | null
+          settings: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          emergency_contacts?: Json | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          phone_number?: string | null
+          settings?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          emergency_contacts?: Json | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          phone_number?: string | null
+          settings?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_votes: {
+        Row: {
+          created_at: string | null
+          id: string
+          review_id: string
+          user_id: string
+          vote_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          review_id: string
+          user_id: string
+          vote_type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          review_id?: string
+          user_id?: string
+          vote_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_votes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "safety_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
