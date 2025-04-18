@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface SafetyRingProps {
@@ -18,7 +17,7 @@ const SafetyRing: React.FC<SafetyRingProps> = ({ score }) => {
   const strokeDashoffset = circumference - (score / 100) * circumference;
   
   return (
-    <div className="relative flex items-center justify-center w-52 h-52 mx-auto">
+    <div className="relative flex items-center justify-center w-52 h-52 mx-auto mt-[-50px]">
       {/* Background circle */}
       <svg className="w-full h-full rotate-[-90deg] animate-rotate-safety" viewBox="0 0 100 100">
         <circle
