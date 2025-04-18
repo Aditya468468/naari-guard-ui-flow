@@ -90,7 +90,8 @@ const SafetyAnalytics: React.FC = () => {
                       width={width} 
                       height={height} 
                       fill={getBarColor(value)} 
-                      radius={[4, 4, 0, 0]}
+                      rx={4}
+                      ry={4}
                     />
                   );
                 }}
