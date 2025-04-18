@@ -1,5 +1,6 @@
 import React from 'react';
- import SafetyMapComponent from '../../map/SafetyMapComponent'; // Adjust the path based on your file structure
+import SafetyMapComponent from './SafetyMapComponent';
+ // Adjust the path based on your file structure
  
  const SafetyMap: React.FC = () => {
    return (
