@@ -56,10 +56,12 @@ const SafetyMap: React.FC = () => {
     // Dynamically import mapbox-gl to prevent SSR issues
     import('mapbox-gl').then(mapboxgl => {
       try {
+        // Need to access the default export for the mapboxgl object
+        const mapboxglDefault = mapboxgl.default;
         // Replace with your actual Mapbox token
-        mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZWRldiIsImEiOiJjbHg2YmgxMmUwM2YzMnFwcDdsMGh2Y3FmIn0.QoP4vZRRQHlk_r8OKQZfVw';
+        mapboxglDefault.accessToken = 'pk.eyJ1IjoibG92YWJsZWRldiIsImEiOiJjbHg2YmgxMmUwM2YzMnFwcDdsMGh2Y3FmIn0.QoP4vZRRQHlk_r8OKQZfVw';
 
-        const map = new mapboxgl.Map({
+        const map = new mapboxglDefault.Map({
           container: mapContainer.current,
           style: mapSettings.style,
           center: mapSettings.center,
@@ -68,7 +70,7 @@ const SafetyMap: React.FC = () => {
         });
 
         // Add navigation controls
-        map.addControl(new mapboxgl.NavigationControl());
+        map.addControl(new mapboxglDefault.NavigationControl());
 
         map.on('load', () => {
           setMapLoaded(true);
