@@ -1,17 +1,33 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Shield, Mail, Lock, Loader2 } from 'lucide-react';
+import { Shield, Mail, Lock, Loader2, User } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
+  const [name, setName] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        navigate('/home');
+      }
+    };
+    
+    checkSession();
+  }, [navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,14 +39,26 @@ const Auth: React.FC = () => {
           email,
           password,
         });
+        
         if (error) throw error;
-        navigate('/home');
+        
+        // Redirect to home or the page they were trying to access
+        const from = location.state?.from?.pathname || '/home';
+        navigate(from, { replace: true });
       } else {
+        // For signup, we'll include the name in the user metadata
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              full_name: name,
+            },
+          },
         });
+        
         if (error) throw error;
+        
         toast({
           title: "Success!",
           description: "Please check your email to verify your account.",
@@ -64,11 +92,28 @@ const Auth: React.FC = () => {
         </h2>
 
         <form onSubmit={handleAuth} className="space-y-4">
+          {!isLogin && (
+            <div>
+              <Label className="text-sm text-gray-400 mb-1 block">Full Name</Label>
+              <div className="relative">
+                <User className="w-5 h-5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 pl-10 text-white focus:outline-none focus:ring-2 focus:ring-naari-purple"
+                  placeholder="Enter your name"
+                  required={!isLogin}
+                />
+              </div>
+            </div>
+          )}
+
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Email</label>
+            <Label className="text-sm text-gray-400 mb-1 block">Email</Label>
             <div className="relative">
               <Mail className="w-5 h-5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
+              <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -80,10 +125,10 @@ const Auth: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Password</label>
+            <Label className="text-sm text-gray-400 mb-1 block">Password</Label>
             <div className="relative">
               <Lock className="w-5 h-5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
+              <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
