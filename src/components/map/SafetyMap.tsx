@@ -10,6 +10,13 @@ interface MapSettings {
   zoom: number;
 }
 
+interface SafeSpot {
+  id: string;
+  name: string;
+  location: [number, number];
+  type: 'police' | 'hospital' | 'safe-zone';
+}
+
 const SafetyMap: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const [mapSettings, setMapSettings] = useState<MapSettings>({
@@ -19,6 +26,30 @@ const SafetyMap: React.FC = () => {
   });
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
+  const [safeSpots, setSafeSpots] = useState<SafeSpot[]>([]);
+  const [isWalkWithMeActive, setIsWalkWithMeActive] = useState(false);
+
+  // Mock safe spots data (in real app, this would come from an API or database)
+  const mockSafeSpots: SafeSpot[] = [
+    {
+      id: '1',
+      name: 'Central Police Station',
+      location: [-73.932242, 40.735610],
+      type: 'police'
+    },
+    {
+      id: '2',
+      name: 'City Hospital',
+      location: [-73.940242, 40.728610],
+      type: 'hospital'
+    },
+    {
+      id: '3',
+      name: 'Community Center',
+      location: [-73.937242, 40.732610],
+      type: 'safe-zone'
+    }
+  ];
 
   useEffect(() => {
     // Fetch map settings from Supabase
@@ -48,6 +79,8 @@ const SafetyMap: React.FC = () => {
     };
 
     fetchMapSettings();
+    // For demo purposes, we're using mock data
+    setSafeSpots(mockSafeSpots);
   }, []);
 
   useEffect(() => {
@@ -74,6 +107,35 @@ const SafetyMap: React.FC = () => {
 
         map.on('load', () => {
           setMapLoaded(true);
+          
+          // Add safe spots to map when it's loaded
+          if (safeSpots.length > 0) {
+            safeSpots.forEach(spot => {
+              // Create a marker element
+              const el = document.createElement('div');
+              el.className = 'safe-spot-marker';
+              
+              // Style based on type
+              let color = '#4ade80'; // default green for safe-zone
+              if (spot.type === 'police') color = '#3b82f6';
+              if (spot.type === 'hospital') color = '#ef4444';
+              
+              el.style.width = '15px';
+              el.style.height = '15px';
+              el.style.borderRadius = '50%';
+              el.style.backgroundColor = color;
+              el.style.border = '2px solid white';
+              el.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
+              
+              // Add tooltip
+              el.title = spot.name;
+              
+              // Add marker to map
+              new mapboxglDefault.Marker(el)
+                .setLngLat(spot.location)
+                .addTo(map);
+            });
+          }
         });
 
         map.on('error', (e) => {
@@ -92,7 +154,20 @@ const SafetyMap: React.FC = () => {
       console.error('Error loading mapbox-gl:', error);
       setMapError(true);
     });
-  }, [mapSettings]);
+  }, [mapSettings, safeSpots]);
+
+  const toggleWalkWithMe = () => {
+    setIsWalkWithMeActive(!isWalkWithMeActive);
+    
+    // Show toast notification using the global toast from hooks/use-toast
+    // In a real app, you would import useToast and use it here
+    if (!isWalkWithMeActive) {
+      console.log("Walk With Me activated - monitoring for safe spots");
+      // Here you'd implement actual geolocation monitoring
+    } else {
+      console.log("Walk With Me deactivated");
+    }
+  };
 
   return (
     <div className="relative mt-4 rounded-xl overflow-hidden glass-card">
@@ -113,11 +188,24 @@ const SafetyMap: React.FC = () => {
       </div>
       
       <button 
-        className="absolute bottom-4 right-4 bg-naari-purple/80 text-white px-4 py-2 rounded-md flex items-center gap-2 glow-effect"
+        className={`absolute bottom-4 right-4 ${
+          isWalkWithMeActive 
+            ? 'bg-naari-teal text-white' 
+            : 'bg-naari-purple/80 text-white'
+        } px-4 py-2 rounded-md flex items-center gap-2 ${
+          isWalkWithMeActive ? 'animate-pulse' : 'glow-effect'
+        }`}
+        onClick={toggleWalkWithMe}
       >
         <Navigation className="w-4 h-4" />
-        <span className="text-sm">Safe route</span>
+        <span className="text-sm">{isWalkWithMeActive ? 'Monitoring Route' : 'Safe route'}</span>
       </button>
+      
+      {isWalkWithMeActive && (
+        <div className="absolute bottom-4 left-4 bg-naari-dark/90 border border-naari-teal/50 rounded-md p-2">
+          <p className="text-xs text-naari-teal">3 safe spots nearby</p>
+        </div>
+      )}
     </div>
   );
 };

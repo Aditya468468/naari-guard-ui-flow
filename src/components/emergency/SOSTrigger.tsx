@@ -1,152 +1,152 @@
 
 import React, { useState } from 'react';
-import { AlertTriangle, Shield, X } from 'lucide-react';
+import { AlertTriangle, PhoneCall, Share, Clock, Shield } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 
 const SOSTrigger: React.FC = () => {
-  const [emergencyActive, setEmergencyActive] = useState(false);
-  const [seconds, setSeconds] = useState(0);
+  const { toast } = useToast();
+  const [sosActive, setSosActive] = useState(false);
+  const [timer, setTimer] = useState(5);
   
-  React.useEffect(() => {
-    let interval: NodeJS.Timeout;
+  const activateSOS = () => {
+    setSosActive(true);
     
-    if (emergencyActive) {
-      interval = setInterval(() => {
-        setSeconds(prev => prev + 1);
-      }, 1000);
-    }
+    toast({
+      title: "SOS Mode Activated",
+      description: "Emergency services and trusted contacts will be notified in 5 seconds.",
+      variant: "destructive",
+      duration: 5000,
+    });
     
-    return () => clearInterval(interval);
-  }, [emergencyActive]);
+    // Start countdown
+    const interval = setInterval(() => {
+      setTimer(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          // Trigger emergency alerts
+          sendEmergencyAlerts();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
   
-  const formatTime = (totalSeconds: number) => {
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  const cancelSOS = () => {
+    setSosActive(false);
+    setTimer(5);
+    
+    toast({
+      title: "SOS Cancelled",
+      description: "Emergency mode has been deactivated.",
+      duration: 3000,
+    });
+  };
+  
+  const sendEmergencyAlerts = () => {
+    // This would connect to actual emergency services API in a real app
+    console.log("Emergency alerts sent to trusted contacts and services");
+    
+    toast({
+      title: "Emergency Alert Sent",
+      description: "Your location has been shared with emergency services and trusted contacts.",
+      variant: "destructive",
+    });
   };
   
   return (
-    <div className="h-full">
-      {emergencyActive ? (
-        <div className="flex flex-col h-full bg-black animate-fade-in">
-          <div className="bg-naari-danger p-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-white animate-pulse-soft" />
-              <span className="text-white font-medium">Emergency Active</span>
+    <div className="p-4 flex flex-col h-full">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gradient">Emergency SOS</h1>
+        <p className="text-sm text-gray-400">
+          One-tap alert to your trusted contacts and emergency services
+        </p>
+      </div>
+      
+      <div className={`glass-card rounded-xl p-8 flex flex-col items-center mb-6 ${
+        sosActive ? 'border-2 border-red-500 shadow-glow-red' : ''
+      }`}>
+        {!sosActive ? (
+          <>
+            <div 
+              className="w-32 h-32 rounded-full bg-red-500/20 border-4 border-red-500 flex items-center justify-center mb-6 cursor-pointer hover:bg-red-500/30 transition-colors"
+              onClick={activateSOS}
+            >
+              <AlertTriangle className="w-16 h-16 text-red-500" />
             </div>
+            <p className="text-white text-lg font-medium mb-2">Press for Emergency</p>
+            <p className="text-gray-400 text-sm text-center">
+              Alerts will be sent to emergency services and your trusted circle
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="w-32 h-32 rounded-full bg-red-500 flex items-center justify-center mb-6 relative">
+              <div className="text-3xl text-white font-bold">{timer}</div>
+              <div className="absolute inset-0 rounded-full border-4 border-red-500 animate-ping"></div>
+            </div>
+            <p className="text-red-400 text-lg font-medium mb-4">Emergency Alert Countdown</p>
             <button 
-              className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center"
-              onClick={() => setEmergencyActive(false)}
+              className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-full transition-colors"
+              onClick={cancelSOS}
             >
-              <X className="w-4 h-4 text-white" />
+              Cancel SOS
             </button>
-          </div>
-          
-          <div className="flex-1 p-4 space-y-6">
-            <div className="glass-card rounded-xl p-4 border border-naari-danger/50">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-white text-sm">Recording</span>
-                <span className="text-naari-danger animate-pulse-soft flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-naari-danger"></span>
-                  <span className="text-xs">{formatTime(seconds)}</span>
-                </span>
-              </div>
-              
-              <div className="space-y-1 text-xs text-gray-400">
-                <p>• Silent recording mode active</p>
-                <p>• Capturing audio & location data</p>
-                <p>• Auto-encrypted and stored securely</p>
-              </div>
-            </div>
-            
-            <div className="glass-card rounded-xl p-4">
-              <div className="text-center mb-3">
-                <span className="text-white text-sm">Emergency Status</span>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-xs">Location Sharing</span>
-                  <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">Active</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-xs">Trust Circle Alert</span>
-                  <span className="text-xs bg-naari-purple/20 text-naari-purple px-2 py-0.5 rounded-full">3 notified</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400 text-xs">Evidence Collection</span>
-                  <span className="text-xs bg-naari-teal/20 text-naari-teal px-2 py-0.5 rounded-full">Running</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex space-x-2">
-              <button className="flex-1 bg-naari-danger/80 text-white py-3 rounded-lg shadow-glow-danger">
-                Call Emergency
-              </button>
-              <button 
-                className="flex-1 bg-white/10 text-white py-3 rounded-lg"
-                onClick={() => setEmergencyActive(false)}
-              >
-                End Silent Mode
-              </button>
-            </div>
-          </div>
-          
-          <div className="p-3 bg-black/30 border-t border-white/10 text-center">
-            <p className="text-xs text-gray-500">
-              Disguised as "Calculator" app on your home screen
-            </p>
-          </div>
+          </>
+        )}
+      </div>
+      
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="glass-card rounded-xl p-4 flex flex-col items-center">
+          <PhoneCall className="w-8 h-8 text-naari-purple mb-2" />
+          <p className="text-white text-sm font-medium">Emergency Call</p>
+          <p className="text-gray-400 text-xs mt-1 text-center">Direct call to emergency services</p>
         </div>
-      ) : (
-        <div className="p-4 flex flex-col h-full">
-          <h1 className="text-2xl font-bold text-gradient mb-6">SOS Setup</h1>
-          
-          <div className="glass-card rounded-xl p-4 mb-6">
-            <h2 className="text-lg font-medium text-white mb-3">Emergency Trigger</h2>
-            <p className="text-sm text-gray-400 mb-4">
-              Set up your emergency trigger for instant access to help when needed.
-            </p>
-            
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm text-gray-300">Secret Code</label>
-                <input
-                  type="text"
-                  placeholder="e.g., 9999"
-                  className="w-full bg-white/10 border border-white/20 rounded-md px-3 py-2 text-white"
-                />
-                <p className="text-xs text-gray-500">
-                  Enter this in the calculator app to trigger emergency mode
-                </p>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm text-gray-300">Emergency Contacts</label>
-                <div className="bg-white/5 rounded-md p-3">
-                  <p className="text-xs text-gray-400">
-                    Configure in Trust Circle page
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex-1 flex flex-col items-center justify-center gap-4">
-            <button
-              className="w-full bg-gradient-to-r from-naari-purple to-naari-teal text-white py-3 rounded-lg font-medium shadow-glow-purple"
-              onClick={() => setEmergencyActive(true)}
-            >
-              Test Emergency Mode
-            </button>
-            
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-              <Shield className="w-4 h-4" />
-              <span>Private & secure</span>
-            </div>
-          </div>
+        
+        <div className="glass-card rounded-xl p-4 flex flex-col items-center">
+          <Share className="w-8 h-8 text-naari-teal mb-2" />
+          <p className="text-white text-sm font-medium">Share Location</p>
+          <p className="text-gray-400 text-xs mt-1 text-center">Send your exact coordinates</p>
         </div>
-      )}
+      </div>
+      
+      <div className="glass-card rounded-xl p-4 mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Clock className="w-5 h-5 text-naari-purple" />
+          <h3 className="text-white font-medium">What happens when SOS is triggered</h3>
+        </div>
+        
+        <ul className="space-y-2">
+          <li className="text-sm text-gray-300 flex items-start gap-2">
+            <div className="w-5 h-5 rounded-full bg-naari-purple/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-naari-purple text-xs">1</span>
+            </div>
+            <span>Your exact location is shared with your emergency contacts</span>
+          </li>
+          
+          <li className="text-sm text-gray-300 flex items-start gap-2">
+            <div className="w-5 h-5 rounded-full bg-naari-purple/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-naari-purple text-xs">2</span>
+            </div>
+            <span>Audio recording automatically begins to capture surroundings</span>
+          </li>
+          
+          <li className="text-sm text-gray-300 flex items-start gap-2">
+            <div className="w-5 h-5 rounded-full bg-naari-purple/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-naari-purple text-xs">3</span>
+            </div>
+            <span>Local emergency services are notified if enabled</span>
+          </li>
+        </ul>
+      </div>
+      
+      <div className="glass-card rounded-xl p-4 flex items-center gap-3">
+        <Shield className="w-6 h-6 text-naari-safe" />
+        <div>
+          <h3 className="text-white text-sm font-medium">Safety Check-In</h3>
+          <p className="text-xs text-gray-400">Set a timer for automatic check-in with contacts</p>
+        </div>
+      </div>
     </div>
   );
 };
