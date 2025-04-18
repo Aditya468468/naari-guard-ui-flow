@@ -29,3 +29,4 @@ const SafetyMapComponent: React.FC = () => {
 };
 
 export default SafetyMapComponent;
+
