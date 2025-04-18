@@ -15,9 +15,9 @@ interface Contact {
 const TrustCircle: React.FC = () => {
   const { toast } = useToast();
   const [contacts, setContacts] = useState<Contact[]>([
-    { id: 1, name: 'Mom', relationship: 'Family', isEmergencyContact: true, isSharing: true, isAlerted: false },
-    { id: 2, name: 'Sarah', relationship: 'Friend', isEmergencyContact: true, isSharing: false, isAlerted: false },
-    { id: 3, name: 'John', relationship: 'Friend', isEmergencyContact: false, isSharing: true, isAlerted: false },
+    { id: 1, name: 'Maa', relationship: 'Family', isEmergencyContact: true, isSharing: true, isAlerted: false },
+    { id: 2, name: 'Utkarsh', relationship: 'Friend', isEmergencyContact: true, isSharing: false, isAlerted: false },
+    { id: 3, name: 'Sritha', relationship: 'Friend', isEmergencyContact: false, isSharing: true, isAlerted: false },
   ]);
   const [isPrivateMode, setIsPrivateMode] = useState(true);
   const [isAlertMode, setIsAlertMode] = useState(false);
