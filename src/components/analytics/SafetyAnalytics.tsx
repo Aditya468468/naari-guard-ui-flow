@@ -75,10 +75,25 @@ const SafetyAnalytics: React.FC = () => {
                 dataKey="score" 
                 radius={[4, 4, 0, 0]}
                 barSize={20}
-                fill="#8884d8"
                 animationDuration={1500}
-                // Custom color for each bar based on value
-                fill={(entry) => getBarColor(entry.score)}
+                fill="#8884d8"
+                // Using the getBarColor function with proper syntax for the fill
+                fillOpacity={1}
+                isAnimationActive={true}
+                // Using a render prop to apply different colors based on data
+                shape={(props) => {
+                  const { x, y, width, height, value } = props;
+                  return (
+                    <rect 
+                      x={x} 
+                      y={y} 
+                      width={width} 
+                      height={height} 
+                      fill={getBarColor(value)} 
+                      radius={[4, 4, 0, 0]}
+                    />
+                  );
+                }}
               />
             </BarChart>
           </ResponsiveContainer>
