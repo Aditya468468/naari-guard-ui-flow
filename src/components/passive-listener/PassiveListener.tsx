@@ -1,105 +1,33 @@
 
-import React, { useState, useEffect } from 'react';
-import { Mic, MicOff, Volume2, Shield, Clock, File, Save, Trash, Info } from 'lucide-react';
+import React from 'react';
+import { Mic, MicOff, Volume2, Shield, File, Save, Trash, Info } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import useAudioRecorder from '@/hooks/useAudioRecorder';
 
 const PassiveListener: React.FC = () => {
   const { toast } = useToast();
-  const [isListening, setIsListening] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [detectedKeywords, setDetectedKeywords] = useState<string[]>([]);
-  const [recordings, setRecordings] = useState<Array<{id: number, duration: string, date: string, status: 'saved' | 'processing'}>>(
-    [
-      {id: 1, duration: '2:34', date: '2 hours ago', status: 'saved'},
-      {id: 2, duration: '1:15', date: 'Yesterday', status: 'saved'},
-    ]
-  );
   
-  // Simulated emergency keywords
+  // Emergency keywords to detect
   const emergencyKeywords = ['help', 'emergency', 'stop', 'danger'];
   
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (isListening) {
-      interval = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-        
-        // Simulate keyword detection randomly
-        if (Math.random() > 0.95) {
-          const randomKeyword = emergencyKeywords[Math.floor(Math.random() * emergencyKeywords.length)];
-          if (!detectedKeywords.includes(randomKeyword)) {
-            setDetectedKeywords(prev => [...prev, randomKeyword]);
-            
-            toast({
-              title: "Emergency Keyword Detected",
-              description: `The word "${randomKeyword}" was detected in your audio.`,
-              variant: "destructive",
-              duration: 5000,
-            });
-          }
-        }
-      }, 1000);
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isListening, detectedKeywords]);
+  const {
+    isRecording,
+    recordingTime,
+    detectedKeywords,
+    recordings,
+    status,
+    startRecording,
+    stopRecording,
+    deleteRecording,
+    formatTime
+  } = useAudioRecorder(emergencyKeywords);
   
   const toggleListening = () => {
-    if (!isListening) {
-      setIsListening(true);
-      setDetectedKeywords([]);
-      setRecordingTime(0);
-      
-      toast({
-        title: "Recording Started",
-        description: "Listening for emergency keywords in the background.",
-        duration: 3000,
-      });
+    if (!isRecording) {
+      startRecording();
     } else {
-      setIsListening(false);
-      
-      // Simulate saving the recording
-      setIsProcessing(true);
-      setTimeout(() => {
-        const hours = Math.floor(recordingTime / 3600);
-        const minutes = Math.floor((recordingTime % 3600) / 60);
-        const seconds = recordingTime % 60;
-        
-        const formattedTime = hours > 0 
-          ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}` 
-          : `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        
-        const newRecording = {
-          id: recordings.length + 1,
-          duration: formattedTime,
-          date: 'Just now',
-          status: 'saved' as const
-        };
-        
-        setRecordings([newRecording, ...recordings]);
-        setIsProcessing(false);
-        
-        toast({
-          title: "Recording Saved",
-          description: `${formattedTime} of audio has been safely stored.`,
-          duration: 3000,
-        });
-      }, 2000);
+      stopRecording();
     }
-  };
-  
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    
-    return hours > 0 
-      ? `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}` 
-      : `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
   
   return (
@@ -112,17 +40,17 @@ const PassiveListener: React.FC = () => {
       </div>
       
       <div className={`glass-card rounded-xl p-6 mb-6 flex flex-col items-center ${
-        isListening ? 'border border-red-500/30 shadow-glow-red' : ''
+        isRecording ? 'border border-red-500/30 shadow-glow-red' : ''
       }`}>
         <div 
           className={`w-24 h-24 rounded-full ${
-            isListening 
+            isRecording 
               ? 'bg-red-500/20 border-2 border-red-500' 
               : 'bg-naari-purple/20 border-2 border-naari-purple'
           } flex items-center justify-center mb-4 relative`}
           onClick={toggleListening}
         >
-          {isListening ? (
+          {isRecording ? (
             <>
               <MicOff className="w-10 h-10 text-red-500" />
               <div className="absolute inset-0 rounded-full border-2 border-red-500 animate-ping opacity-75"></div>
@@ -132,7 +60,7 @@ const PassiveListener: React.FC = () => {
           )}
         </div>
         
-        {isListening ? (
+        {isRecording ? (
           <div className="text-center">
             <p className="text-lg font-medium text-white">Recording in Progress</p>
             <p className="text-2xl font-bold text-gradient mt-2">{formatTime(recordingTime)}</p>
@@ -149,7 +77,7 @@ const PassiveListener: React.FC = () => {
       </div>
       
       {/* Keyword Detection */}
-      {isListening && detectedKeywords.length > 0 && (
+      {isRecording && detectedKeywords.length > 0 && (
         <div className="glass-card rounded-xl p-4 mb-6">
           <div className="flex items-center gap-2 mb-3">
             <Shield className="w-5 h-5 text-red-400" />
@@ -198,7 +126,7 @@ const PassiveListener: React.FC = () => {
           </div>
         </div>
         
-        {isProcessing && (
+        {status === 'processing' && (
           <div className="glass-card rounded-xl p-3 mb-3 border border-naari-purple/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -210,7 +138,6 @@ const PassiveListener: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <Clock className="w-4 h-4 text-gray-400" />
             </div>
           </div>
         )}
@@ -221,12 +148,24 @@ const PassiveListener: React.FC = () => {
               <div className="flex items-center gap-2">
                 <File className="w-5 h-5 text-naari-teal" />
                 <div>
-                  <p className="text-white text-sm">Recording {recording.id}</p>
+                  <p className="text-white text-sm">Recording {typeof recording.id === 'number' ? recording.id : recording.id.substring(0, 8)}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs text-gray-400">{recording.duration}</span>
                     <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
                     <span className="text-xs text-gray-400">{recording.date}</span>
                   </div>
+                  {recording.detectedKeywords && recording.detectedKeywords.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {recording.detectedKeywords.map((keyword, idx) => (
+                        <span 
+                          key={idx} 
+                          className="bg-red-500/20 text-red-400 text-xs px-2 py-0.5 rounded-full"
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -234,7 +173,10 @@ const PassiveListener: React.FC = () => {
                 <button className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
                   <Save className="w-4 h-4 text-naari-teal" />
                 </button>
-                <button className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+                <button 
+                  className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"
+                  onClick={() => deleteRecording(recording.id)}
+                >
                   <Trash className="w-4 h-4 text-gray-400" />
                 </button>
               </div>

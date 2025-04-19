@@ -33,6 +33,39 @@ export type Database = {
         }
         Relationships: []
       }
+      audio_recordings: {
+        Row: {
+          created_at: string | null
+          date: string
+          detected_keywords: string[] | null
+          duration: string
+          file_path: string | null
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string
+          detected_keywords?: string[] | null
+          duration: string
+          file_path?: string | null
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          detected_keywords?: string[] | null
+          duration?: string
+          file_path?: string | null
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       emergency_logs: {
         Row: {
           created_at: string | null
