@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Mic, MicOff, Volume2, Shield, File, Save, Trash, Info } from 'lucide-react';
+import { Mic, MicOff, Volume2, Shield, File, Save, Trash, Info, Play, Pause } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import useAudioRecorder from '@/hooks/useAudioRecorder';
 
@@ -18,8 +18,11 @@ const PassiveListener: React.FC = () => {
     status,
     startRecording,
     stopRecording,
+    playRecording,
+    stopPlayback,
     deleteRecording,
-    formatTime
+    formatTime,
+    currentAudio
   } = useAudioRecorder(emergencyKeywords);
   
   const toggleListening = () => {
@@ -47,7 +50,7 @@ const PassiveListener: React.FC = () => {
             isRecording 
               ? 'bg-red-500/20 border-2 border-red-500' 
               : 'bg-naari-purple/20 border-2 border-naari-purple'
-          } flex items-center justify-center mb-4 relative`}
+          } flex items-center justify-center mb-4 relative cursor-pointer`}
           onClick={toggleListening}
         >
           {isRecording ? (
@@ -170,9 +173,20 @@ const PassiveListener: React.FC = () => {
               </div>
               
               <div className="flex items-center gap-2">
-                <button className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
-                  <Save className="w-4 h-4 text-naari-teal" />
-                </button>
+                {recording.audioUrl && (
+                  <button 
+                    className="w-8 h-8 rounded-full bg-naari-teal/20 flex items-center justify-center"
+                    onClick={() => currentAudio?.src === recording.audioUrl 
+                      ? stopPlayback() 
+                      : playRecording(recording.audioUrl)}
+                  >
+                    {currentAudio?.src === recording.audioUrl ? (
+                      <Pause className="w-4 h-4 text-naari-teal" />
+                    ) : (
+                      <Play className="w-4 h-4 text-naari-teal" />
+                    )}
+                  </button>
+                )}
                 <button 
                   className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"
                   onClick={() => deleteRecording(recording.id)}

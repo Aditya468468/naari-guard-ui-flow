@@ -12,6 +12,7 @@ export interface Recording {
   date: string;
   status: 'saved' | 'processing';
   detectedKeywords?: string[];
+  audioUrl?: string;
 }
 
 export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
@@ -23,6 +24,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
   const [detectedKeywords, setDetectedKeywords] = useState<string[]>([]);
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [status, setStatus] = useState<RecordingStatus>('idle');
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const intervalRef = useRef<number | null>(null);
@@ -44,13 +46,28 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       if (error) throw error;
 
       if (data) {
-        setRecordings(data.map(item => ({
-          id: item.id,
-          duration: item.duration,
-          date: formatDate(item.date),
-          status: item.status as 'saved' | 'processing',
-          detectedKeywords: item.detected_keywords
-        })));
+        const recordingsWithUrls = await Promise.all(data.map(async item => {
+          let audioUrl = null;
+          if (item.file_path) {
+            const { data: urlData } = await supabase
+              .storage
+              .from('audio_recordings')
+              .createSignedUrl(item.file_path, 60 * 60); // 1 hour expiry
+              
+            audioUrl = urlData?.signedUrl || null;
+          }
+          
+          return {
+            id: item.id,
+            duration: item.duration,
+            date: formatDate(item.date),
+            status: item.status as 'saved' | 'processing',
+            detectedKeywords: item.detected_keywords,
+            audioUrl
+          };
+        }));
+        
+        setRecordings(recordingsWithUrls);
       }
     } catch (error) {
       console.error('Error fetching recordings:', error);
@@ -79,7 +96,13 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      mediaRecorderRef.current = new MediaRecorder(stream);
+      // Check if browser supports the MediaRecorder API with the desired format
+      const mimeType = 'audio/webm';
+      
+      mediaRecorderRef.current = new MediaRecorder(stream, {
+        mimeType,
+        audioBitsPerSecond: 128000
+      });
       chunksRef.current = [];
       
       mediaRecorderRef.current.ondataavailable = (e) => {
@@ -87,7 +110,8 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       };
       
       mediaRecorderRef.current.onstop = async () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        console.log("Recording stopped, blob size:", blob.size);
         setAudioBlob(blob);
         await processRecording(blob);
       };
@@ -148,6 +172,8 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
     }
     
     try {
+      console.log("Processing recording, blob size:", blob.size);
+      
       // Convert blob to base64
       const reader = new FileReader();
       const base64Promise = new Promise<string>((resolve) => {
@@ -159,8 +185,10 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       });
       reader.readAsDataURL(blob);
       const base64Data = await base64Promise;
+      console.log("Converted to base64, length:", base64Data.length);
 
       // Process audio with edge function
+      console.log("Calling process-audio function...");
       const { data: processData, error: processError } = await supabase.functions.invoke(
         'process-audio',
         {
@@ -168,7 +196,12 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
         }
       );
 
-      if (processError) throw processError;
+      if (processError) {
+        console.error("Process error:", processError);
+        throw processError;
+      }
+      
+      console.log("Processed data:", processData);
       
       // If keywords were detected
       if (processData.detectedKeywords && processData.detectedKeywords.length > 0) {
@@ -193,14 +226,31 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       const formattedTime = hours > 0 
         ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}` 
         : `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+      // Check if storage bucket exists, create it if it doesn't
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const audioBucket = buckets?.find(b => b.name === 'audio_recordings');
+      
+      if (!audioBucket) {
+        console.log("Creating audio_recordings bucket");
+        await supabase.storage.createBucket('audio_recordings', {
+          public: true
+        });
+      }
       
       // Save audio to Storage
       const fileName = `${user.id}/${Date.now()}.webm`;
-      const { error: uploadError } = await supabase.storage
+      console.log("Uploading to storage with filename:", fileName);
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('audio_recordings')
         .upload(fileName, blob);
         
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw uploadError;
+      }
+
+      console.log("Upload successful:", uploadData);
       
       // Save record to database
       const { data: recordingData, error: dbError } = await supabase
@@ -214,7 +264,12 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
         .select()
         .single();
         
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error("Database error:", dbError);
+        throw dbError;
+      }
+
+      console.log("Database entry successful:", recordingData);
 
       // Refresh recordings
       await fetchRecordings();
@@ -234,6 +289,36 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
         description: "Failed to process and save recording.",
         variant: "destructive",
       });
+    }
+  };
+
+  const playRecording = (audioUrl: string) => {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.src = "";
+    }
+    
+    const audio = new Audio(audioUrl);
+    audio.onended = () => {
+      setCurrentAudio(null);
+    };
+    
+    setCurrentAudio(audio);
+    audio.play().catch(err => {
+      console.error("Error playing audio:", err);
+      toast({
+        title: "Playback Error",
+        description: "Could not play this recording.",
+        variant: "destructive",
+      });
+    });
+  };
+
+  const stopPlayback = () => {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.src = "";
+      setCurrentAudio(null);
     }
   };
 
@@ -302,6 +387,10 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       if (mediaRecorderRef.current) {
         mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
       }
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.src = "";
+      }
     };
   }, []);
 
@@ -313,8 +402,11 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
     status,
     startRecording,
     stopRecording,
+    playRecording,
+    stopPlayback,
     deleteRecording,
-    formatTime
+    formatTime,
+    currentAudio
   };
 };
 
