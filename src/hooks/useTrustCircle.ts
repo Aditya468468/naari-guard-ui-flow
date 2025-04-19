@@ -11,7 +11,9 @@ export interface TrustCircleContact {
   relationship?: string;
   is_emergency_contact: boolean;
   is_sharing: boolean;
+  is_alerted?: boolean;
   priority: number;
+  user_id: string;
 }
 
 export function useTrustCircle() {
@@ -35,15 +37,29 @@ export function useTrustCircle() {
         throw error;
       }
 
-      return data as TrustCircleContact[];
+      // Initialize is_alerted as false for all contacts
+      return (data || []).map(contact => ({
+        ...contact,
+        is_alerted: false
+      })) as TrustCircleContact[];
     },
   });
 
   const addContact = useMutation({
     mutationFn: async (contact: Omit<TrustCircleContact, 'id'>) => {
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) throw new Error("User not authenticated");
+      
+      const newContact = {
+        ...contact,
+        user_id: user.id
+      };
+      
       const { data, error } = await supabase
         .from('trust_circle_contacts')
-        .insert(contact)
+        .insert(newContact)
         .select()
         .single();
 
@@ -68,9 +84,12 @@ export function useTrustCircle() {
 
   const updateContact = useMutation({
     mutationFn: async (contact: TrustCircleContact) => {
+      // Filter out the is_alerted property if it exists as it's not in the DB
+      const { is_alerted, ...dbContact } = contact;
+      
       const { data, error } = await supabase
         .from('trust_circle_contacts')
-        .update(contact)
+        .update(dbContact)
         .eq('id', contact.id)
         .select()
         .single();

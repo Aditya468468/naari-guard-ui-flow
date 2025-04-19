@@ -1,3 +1,4 @@
+
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -39,8 +40,6 @@ const SafetyMapComponent: React.FC = () => {
 
   return (
     <MapContainer
-      center={position} // Use live location if available
-      zoom={13}
       style={{
         height: '250px', // Set the height of the map
         width: '100%',   // Make the map full width
@@ -49,10 +48,12 @@ const SafetyMapComponent: React.FC = () => {
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', // Optional: Add a shadow for a card-like effect
         border: '2px solid #ddd', // Optional: Add a subtle border around the map
       }}
+      center={position as [number, number]}
+      zoom={13}
     >
       <TileLayer
-        attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
       />
       <Marker position={position}>
         <Popup>You are here 🚨</Popup>
