@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -17,7 +18,8 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@leaflet": path.resolve(__dirname, 'node_modules/leaflet'), // Added this alias for leaflet
+      "@leaflet": path.resolve(__dirname, 'node_modules/leaflet'),
+      "leaflet-defaulticon-compatibility": path.resolve(__dirname, 'node_modules/leaflet-defaulticon-compatibility')
     },
   },
 }));
