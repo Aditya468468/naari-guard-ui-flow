@@ -50,14 +50,13 @@ const SafetyMapComponent: React.FC = () => {
       }}
       center={position}
       zoom={13}
-      whenReady={(mapInstance) => {
+      whenReady={() => {
         // Additional setup after map is ready if needed
         console.log("Map is ready");
       }}
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
       />
       <Marker position={position}>
         <Popup>You are here 🚨</Popup>
