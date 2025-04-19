@@ -48,15 +48,16 @@ const SafetyMapComponent: React.FC = () => {
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', // Optional: Add a shadow for a card-like effect
         border: '2px solid #ddd', // Optional: Add a subtle border around the map
       }}
-      // For react-leaflet v3+, center and zoom need to be set differently
-      whenCreated={(mapInstance) => {
-        mapInstance.setView(position, 13);
+      center={position}
+      zoom={13}
+      whenReady={(mapInstance) => {
+        // Additional setup after map is ready if needed
+        console.log("Map is ready");
       }}
     >
       <TileLayer
-        // For react-leaflet v3+, use these props correctly
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
+        attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'
       />
       <Marker position={position}>
         <Popup>You are here 🚨</Popup>
