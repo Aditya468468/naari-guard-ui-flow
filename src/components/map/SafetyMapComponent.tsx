@@ -18,7 +18,7 @@ const SetViewOnPosition = ({ position }: { position: [number, number] }) => {
   
   useEffect(() => {
     if (position) {
-      map.setView(position, 13);
+      map.setView(position, 13); // We can set the zoom level here as well (13)
     }
   }, [map, position]);
   
@@ -61,12 +61,11 @@ const SafetyMapComponent: React.FC = () => {
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', // Optional: Add a shadow for a card-like effect
         border: '2px solid #ddd', // Optional: Add a subtle border around the map
       }}
-      zoom={13}
       whenReady={() => {
         console.log("Map is ready");
       }}
     >
-      {/* Set the view based on position */}
+      {/* Set the view based on position - this handles both center and zoom */}
       <SetViewOnPosition position={position} />
       
       <TileLayer
