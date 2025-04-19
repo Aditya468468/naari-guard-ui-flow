@@ -1,5 +1,5 @@
 
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useState, useEffect } from 'react';
@@ -11,6 +11,19 @@ L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon-2x.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png',
 });
+
+// This component sets the map view to the position
+const SetViewOnPosition = ({ position }: { position: [number, number] }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (position) {
+      map.setView(position, 13);
+    }
+  }, [map, position]);
+  
+  return null;
+};
 
 const SafetyMapComponent: React.FC = () => {
   const [position, setPosition] = useState<[number, number] | null>(null);
@@ -48,13 +61,14 @@ const SafetyMapComponent: React.FC = () => {
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', // Optional: Add a shadow for a card-like effect
         border: '2px solid #ddd', // Optional: Add a subtle border around the map
       }}
-      center={position}
       zoom={13}
       whenReady={() => {
-        // Additional setup after map is ready if needed
         console.log("Map is ready");
       }}
     >
+      {/* Set the view based on position */}
+      <SetViewOnPosition position={position} />
+      
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
