@@ -243,7 +243,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       const { data: recordingData, error: fetchError } = await supabase
         .from('audio_recordings')
         .select('file_path')
-        .eq('id', id)
+        .eq('id', id.toString()) // Convert id to string here
         .single();
         
       if (fetchError) throw fetchError;
@@ -261,7 +261,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       const { error: deleteError } = await supabase
         .from('audio_recordings')
         .delete()
-        .eq('id', id);
+        .eq('id', id.toString()); // Convert id to string here
         
       if (deleteError) throw deleteError;
       
