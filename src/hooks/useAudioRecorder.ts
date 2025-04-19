@@ -38,23 +38,36 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
 
   const fetchRecordings = async () => {
     try {
+      console.log("Fetching recordings for user:", user?.id);
       const { data, error } = await supabase
         .from('audio_recordings')
         .select('*')
+        .eq('user_id', user?.id)
         .order('date', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching recordings:", error);
+        throw error;
+      }
+
+      console.log("Fetched recordings:", data);
 
       if (data) {
         const recordingsWithUrls = await Promise.all(data.map(async item => {
           let audioUrl = null;
           if (item.file_path) {
-            const { data: urlData } = await supabase
+            console.log("Getting signed URL for:", item.file_path);
+            const { data: urlData, error: urlError } = await supabase
               .storage
               .from('audio_recordings')
               .createSignedUrl(item.file_path, 60 * 60); // 1 hour expiry
               
-            audioUrl = urlData?.signedUrl || null;
+            if (urlError) {
+              console.error("Error creating signed URL:", urlError);
+            } else {
+              console.log("Got signed URL:", urlData?.signedUrl);
+              audioUrl = urlData?.signedUrl || null;
+            }
           }
           
           return {
@@ -67,6 +80,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
           };
         }));
         
+        console.log("Recordings with URLs:", recordingsWithUrls);
         setRecordings(recordingsWithUrls);
       }
     } catch (error) {
@@ -94,6 +108,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
 
   const startRecording = async () => {
     try {
+      console.log("Starting recording...");
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
       // Check if browser supports the MediaRecorder API with the desired format
@@ -106,6 +121,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       chunksRef.current = [];
       
       mediaRecorderRef.current.ondataavailable = (e) => {
+        console.log("Data available chunk size:", e.data.size);
         chunksRef.current.push(e.data);
       };
       
@@ -145,6 +161,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
+      console.log("Stopping recording...");
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       setStatus('processing');
@@ -228,14 +245,26 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
         : `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
       // Check if storage bucket exists, create it if it doesn't
-      const { data: buckets } = await supabase.storage.listBuckets();
+      console.log("Checking storage buckets...");
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      
+      if (bucketsError) {
+        console.error("Error checking buckets:", bucketsError);
+        throw bucketsError;
+      }
+      
       const audioBucket = buckets?.find(b => b.name === 'audio_recordings');
       
       if (!audioBucket) {
         console.log("Creating audio_recordings bucket");
-        await supabase.storage.createBucket('audio_recordings', {
+        const { error: createBucketError } = await supabase.storage.createBucket('audio_recordings', {
           public: true
         });
+        
+        if (createBucketError) {
+          console.error("Error creating bucket:", createBucketError);
+          throw createBucketError;
+        }
       }
       
       // Save audio to Storage
@@ -298,6 +327,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       currentAudio.src = "";
     }
     
+    console.log("Playing audio URL:", audioUrl);
     const audio = new Audio(audioUrl);
     audio.onended = () => {
       setCurrentAudio(null);
@@ -324,34 +354,50 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
 
   const deleteRecording = async (id: string | number) => {
     try {
+      const idString = id.toString();
+      console.log("Deleting recording with ID:", idString);
+      
       // Get file path first
       const { data: recordingData, error: fetchError } = await supabase
         .from('audio_recordings')
         .select('file_path')
-        .eq('id', id.toString()) // Convert id to string here
+        .eq('id', idString)
         .single();
         
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error("Fetch error:", fetchError);
+        throw fetchError;
+      }
       
       // Delete from storage if file_path exists
       if (recordingData?.file_path) {
+        console.log("Deleting from storage:", recordingData.file_path);
         const { error: storageError } = await supabase.storage
           .from('audio_recordings')
           .remove([recordingData.file_path]);
           
-        if (storageError) throw storageError;
+        if (storageError) {
+          console.error("Storage delete error:", storageError);
+          throw storageError;
+        }
       }
       
       // Delete from database
+      console.log("Deleting from database:", idString);
       const { error: deleteError } = await supabase
         .from('audio_recordings')
         .delete()
-        .eq('id', id.toString()); // Convert id to string here
+        .eq('id', idString);
         
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error("Database delete error:", deleteError);
+        throw deleteError;
+      }
+      
+      console.log("Delete successful");
       
       // Update state
-      setRecordings(prev => prev.filter(r => r.id !== id));
+      setRecordings(prev => prev.filter(r => r.id.toString() !== idString));
       
       toast({
         title: "Recording Deleted",

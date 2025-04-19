@@ -20,6 +20,9 @@ serve(async (req) => {
       throw new Error('No audio data provided');
     }
 
+    console.log("Received audio data, length:", audioBlob.length);
+    console.log("Emergency keywords:", emergencyKeywords);
+
     // Get audio data and convert from base64
     const base64Data = audioBlob.split(',')[1];
     const binaryString = atob(base64Data);
@@ -28,13 +31,18 @@ serve(async (req) => {
       bytes[i] = binaryString.charCodeAt(i);
     }
 
+    console.log("Converted to binary, size:", bytes.length);
+
     // Create a blob from the binary data
     const blob = new Blob([bytes], { type: 'audio/webm' });
+    console.log("Created blob, size:", blob.size);
     
     // Create form data for OpenAI API
     const formData = new FormData();
     formData.append('file', blob, 'recording.webm');
     formData.append('model', 'whisper-1');
+    
+    console.log("Sending to OpenAI API...");
     
     // Transcribe audio using OpenAI Whisper API
     const openaiResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
@@ -65,6 +73,8 @@ serve(async (req) => {
         }
       }
     }
+    
+    console.log("Detected keywords:", detectedKeywords);
     
     return new Response(
       JSON.stringify({ 

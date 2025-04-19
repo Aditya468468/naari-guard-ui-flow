@@ -145,6 +145,12 @@ const PassiveListener: React.FC = () => {
           </div>
         )}
         
+        {recordings.length === 0 && status !== 'processing' && (
+          <div className="glass-card rounded-xl p-4 text-center">
+            <p className="text-gray-400">No recordings yet</p>
+          </div>
+        )}
+        
         {recordings.map((recording) => (
           <div key={recording.id} className="glass-card rounded-xl p-3 mb-3">
             <div className="flex items-center justify-between">
