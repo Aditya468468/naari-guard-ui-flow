@@ -201,6 +201,48 @@ export type Database = {
         }
         Relationships: []
       }
+      trust_circle_contacts: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          is_emergency_contact: boolean | null
+          is_sharing: boolean | null
+          name: string
+          phone: string
+          priority: number | null
+          relationship: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_emergency_contact?: boolean | null
+          is_sharing?: boolean | null
+          name: string
+          phone: string
+          priority?: number | null
+          relationship?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_emergency_contact?: boolean | null
+          is_sharing?: boolean | null
+          name?: string
+          phone?: string
+          priority?: number | null
+          relationship?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           created_at: string | null
