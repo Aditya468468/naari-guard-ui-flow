@@ -1,7 +1,7 @@
 
 import React from 'react';
-import SafetyMapComponent from './map/SafetyMapComponent'; // Correct import path
- 
+import SafetyMapComponent from '../map/SafetyMapComponent'; // Correct relative path
+
 const SafetyMap: React.FC = () => {
   return (
     <div className="p-4">
@@ -10,5 +10,5 @@ const SafetyMap: React.FC = () => {
     </div>
   );
 };
- 
+
 export default SafetyMap;

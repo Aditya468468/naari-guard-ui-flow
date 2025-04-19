@@ -48,10 +48,12 @@ const SafetyMapComponent: React.FC = () => {
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', // Optional: Add a shadow for a card-like effect
         border: '2px solid #ddd', // Optional: Add a subtle border around the map
       }}
-      center={position as [number, number]}
+      // In react-leaflet, center and zoom are actually passed as props to MapContainer
+      center={position}
       zoom={13}
     >
       <TileLayer
+        // In react-leaflet, url and attribution are passed as props to TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a>'
       />

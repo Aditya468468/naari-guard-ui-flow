@@ -2,7 +2,7 @@
 import React from 'react';
 import MobileLayout from '../components/layout/MobileLayout';
 import SafetyRing from '../components/home/SafetyRing';
-import SafetyMap from '../components/home/SafetyMap';
+import SafetyMap from '../components/SafetyMap'; // Fixed import path
 import QuickActions from '../components/home/QuickActions';
 import AIBubble from '../components/assistant/AIBubble';
 import { ShieldCheck } from 'lucide-react';
