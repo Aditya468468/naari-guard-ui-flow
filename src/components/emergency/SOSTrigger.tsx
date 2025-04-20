@@ -1,13 +1,20 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertTriangle, PhoneCall, Share, Clock, Shield } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from 'react-router-dom';
 
 const SOSTrigger: React.FC = () => {
   const { toast } = useToast();
   const [sosActive, setSosActive] = useState(false);
   const [timer, setTimer] = useState(5);
-  
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.fromKeywordDetection && !sosActive) {
+      activateSOS();
+    }
+  }, [location.state]);
+
   const activateSOS = () => {
     setSosActive(true);
     
@@ -18,12 +25,10 @@ const SOSTrigger: React.FC = () => {
       duration: 5000,
     });
     
-    // Start countdown
     const interval = setInterval(() => {
       setTimer(prev => {
         if (prev <= 1) {
           clearInterval(interval);
-          // Trigger emergency alerts
           sendEmergencyAlerts();
           return 0;
         }
@@ -44,7 +49,6 @@ const SOSTrigger: React.FC = () => {
   };
   
   const sendEmergencyAlerts = () => {
-    // This would connect to actual emergency services API in a real app
     console.log("Emergency alerts sent to trusted contacts and services");
     
     toast({

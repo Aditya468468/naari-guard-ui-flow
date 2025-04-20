@@ -1,16 +1,20 @@
 import React from 'react';
-import { Mic, MicOff, Volume2, Shield, File, Save, Trash, Info, Play, Pause } from 'lucide-react';
+import { Mic, MicOff, Volume2, Shield, File, Save, Trash, Info, Play, Pause, Siren } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from 'react-router-dom';
 import useAudioRecorder from '@/hooks/useAudioRecorder';
 
 const PassiveListener: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   
-  // Expanded emergency keywords to detect
+  // Extended emergency keywords list
   const emergencyKeywords = [
     'help', 'emergency', 'stop', 'danger', 
     'save me', 'please help', 'assistance', 'sos', 
-    'need help', 'call police', 'call 911', 'help me'
+    'need help', 'call police', 'call 911', 'help me',
+    'save me', 'danger', 'emergency', 'please stop',
+    'leave me alone', 'get away', 'no', 'stay away'
   ];
   
   const {
@@ -27,6 +31,22 @@ const PassiveListener: React.FC = () => {
     formatTime,
     currentAudio
   } = useAudioRecorder(emergencyKeywords);
+
+  // Handle emergency detection
+  React.useEffect(() => {
+    if (detectedKeywords.length > 0) {
+      // Trigger emergency protocol
+      toast({
+        title: "Emergency Keywords Detected!",
+        description: "Initiating emergency protocol...",
+        variant: "destructive",
+        duration: 5000,
+      });
+      
+      // Navigate to emergency page and trigger SOS
+      navigate('/emergency');
+    }
+  }, [detectedKeywords, navigate, toast]);
   
   const toggleListening = () => {
     if (!isRecording) {
