@@ -26,6 +26,10 @@ serve(async (req) => {
 
     // Get audio data and convert from base64
     const base64Data = audioBlob.split(',')[1];
+    if (!base64Data) {
+      throw new Error('Invalid audio data format');
+    }
+
     const binaryString = atob(base64Data);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
@@ -33,6 +37,9 @@ serve(async (req) => {
     }
 
     console.log("Converted to binary, size:", bytes.length);
+    if (bytes.length === 0) {
+      throw new Error('Empty audio data after conversion');
+    }
 
     // Create a blob and buffer
     const blob = new Blob([bytes], { type: 'audio/webm' });
@@ -64,7 +71,7 @@ serve(async (req) => {
       const transcriptText = transcriptionResponse.text || '';
       console.log('Transcription:', transcriptText);
       
-      // Case-insensitive keyword detection with better phrase matching
+      // Enhanced keyword detection algorithm
       const detectedKeywords = [];
       const lowerCaseTranscript = transcriptText.toLowerCase();
       
@@ -73,12 +80,9 @@ serve(async (req) => {
           const keywordLower = keyword.toLowerCase();
           
           // Check for exact matches or phrases containing the keyword
-          if (
-            lowerCaseTranscript.includes(keywordLower) || 
-            lowerCaseTranscript.includes(`${keywordLower} me`) ||
-            lowerCaseTranscript.includes(`${keywordLower}!`)
-          ) {
+          if (lowerCaseTranscript.includes(keywordLower)) {
             detectedKeywords.push(keyword);
+            console.log(`Detected keyword: ${keyword}`);
           }
         }
       }

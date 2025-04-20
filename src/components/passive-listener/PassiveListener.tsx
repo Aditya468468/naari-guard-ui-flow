@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Mic, MicOff, Volume2, Shield, File, Save, Trash, Info, Play, Pause } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
@@ -7,8 +6,12 @@ import useAudioRecorder from '@/hooks/useAudioRecorder';
 const PassiveListener: React.FC = () => {
   const { toast } = useToast();
   
-  // Emergency keywords to detect
-  const emergencyKeywords = ['help', 'emergency', 'stop', 'danger'];
+  // Expanded emergency keywords to detect
+  const emergencyKeywords = [
+    'help', 'emergency', 'stop', 'danger', 
+    'save me', 'please help', 'assistance', 'sos', 
+    'need help', 'call police', 'call 911', 'help me'
+  ];
   
   const {
     isRecording,

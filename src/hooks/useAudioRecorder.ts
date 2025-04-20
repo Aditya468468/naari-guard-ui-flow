@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
@@ -122,17 +121,31 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       
       mediaRecorderRef.current.ondataavailable = (e) => {
         console.log("Data available chunk size:", e.data.size);
-        chunksRef.current.push(e.data);
+        if (e.data.size > 0) {
+          chunksRef.current.push(e.data);
+        }
       };
       
       mediaRecorderRef.current.onstop = async () => {
+        if (chunksRef.current.length === 0) {
+          console.error("No audio chunks recorded");
+          setStatus('error');
+          toast({
+            title: "Recording Error",
+            description: "No audio data was captured. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
         const blob = new Blob(chunksRef.current, { type: mimeType });
         console.log("Recording stopped, blob size:", blob.size);
         setAudioBlob(blob);
         await processRecording(blob);
       };
       
-      mediaRecorderRef.current.start();
+      // Request data every second to ensure we're getting chunks
+      mediaRecorderRef.current.start(1000);
       setIsRecording(true);
       setRecordingTime(0);
       setDetectedKeywords([]);
@@ -193,12 +206,15 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       
       // Convert blob to base64
       const reader = new FileReader();
-      const base64Promise = new Promise<string>((resolve) => {
+      const base64Promise = new Promise<string>((resolve, reject) => {
         reader.onloadend = () => {
           if (typeof reader.result === 'string') {
             resolve(reader.result);
+          } else {
+            reject(new Error("Failed to convert audio to base64"));
           }
         };
+        reader.onerror = () => reject(reader.error);
       });
       reader.readAsDataURL(blob);
       const base64Data = await base64Promise;
@@ -244,28 +260,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
         ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}` 
         : `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-      // Check if storage bucket exists, create it if it doesn't
-      console.log("Checking storage buckets...");
-      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
-      
-      if (bucketsError) {
-        console.error("Error checking buckets:", bucketsError);
-        throw bucketsError;
-      }
-      
-      const audioBucket = buckets?.find(b => b.name === 'audio_recordings');
-      
-      if (!audioBucket) {
-        console.log("Creating audio_recordings bucket");
-        const { error: createBucketError } = await supabase.storage.createBucket('audio_recordings', {
-          public: true
-        });
-        
-        if (createBucketError) {
-          console.error("Error creating bucket:", createBucketError);
-          throw createBucketError;
-        }
-      }
+      // First create bucket if it doesn't exist using the storage.sql
       
       // Save audio to Storage
       const fileName = `${user.id}/${Date.now()}.webm`;
