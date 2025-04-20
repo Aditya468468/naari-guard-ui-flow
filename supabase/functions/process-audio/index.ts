@@ -52,7 +52,7 @@ serve(async (req) => {
     try {
       console.log("Sending to Hugging Face API...");
       
-      // Use Hugging Face's automatic speech recognition
+      // Use Hugging Face's automatic speech recognition with a more accurate model
       const transcriptionResponse = await hf.automaticSpeechRecognition({
         model: "openai/whisper-small",
         data: buffer,
@@ -64,13 +64,20 @@ serve(async (req) => {
       const transcriptText = transcriptionResponse.text || '';
       console.log('Transcription:', transcriptText);
       
-      // Detect emergency keywords
+      // Case-insensitive keyword detection with better phrase matching
       const detectedKeywords = [];
       const lowerCaseTranscript = transcriptText.toLowerCase();
       
       if (emergencyKeywords && emergencyKeywords.length > 0) {
         for (const keyword of emergencyKeywords) {
-          if (lowerCaseTranscript.includes(keyword.toLowerCase())) {
+          const keywordLower = keyword.toLowerCase();
+          
+          // Check for exact matches or phrases containing the keyword
+          if (
+            lowerCaseTranscript.includes(keywordLower) || 
+            lowerCaseTranscript.includes(`${keywordLower} me`) ||
+            lowerCaseTranscript.includes(`${keywordLower}!`)
+          ) {
             detectedKeywords.push(keyword);
           }
         }
