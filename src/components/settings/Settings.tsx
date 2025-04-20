@@ -1,8 +1,13 @@
-
 import React, { useState } from 'react';
-import { Bell, ChevronRight, Download, Key, Lock, Mic, Shield, Smartphone, Volume2 } from 'lucide-react';
+import { Bell, ChevronRight, Download, Key, Lock, Mic, Shield, Smartphone, Volume2, LogOut } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '../auth/AuthProvider';
+import { useNavigate } from 'react-router-dom';
 
 const Settings: React.FC = () => {
+  const { toast } = useToast();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
   const [settings, setSettings] = useState({
     offlineMode: false,
     aiListening: true,
@@ -16,6 +21,23 @@ const Settings: React.FC = () => {
       ...prev,
       [key]: !prev[key],
     }));
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account",
+      });
+      navigate('/auth');
+    } catch (error) {
+      toast({
+        title: "Error logging out",
+        description: "There was a problem logging out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -193,17 +215,28 @@ const Settings: React.FC = () => {
           </div>
         </div>
         
-        <div className="glass-card rounded-xl p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-naari-purple/20 flex items-center justify-center">
-              <Shield className="w-4 h-4 text-naari-purple" />
-            </div>
-            <div>
-              <h3 className="text-white text-sm font-medium">About NaariGuard AI</h3>
-              <p className="text-xs text-gray-500">Version 1.0.0</p>
-            </div>
+        <div className="glass-card rounded-xl overflow-hidden mt-6">
+          <div className="p-3 border-b border-white/10 bg-white/5">
+            <h2 className="text-white font-medium">Account</h2>
           </div>
-          <ChevronRight className="w-5 h-5 text-gray-400" />
+          
+          <div className="divide-y divide-white/10">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center">
+                  <LogOut className="w-4 h-4 text-red-500" />
+                </div>
+                <div>
+                  <h3 className="text-white text-sm font-medium">Logout</h3>
+                  <p className="text-xs text-gray-500">Sign out of your account</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
+          </div>
         </div>
         
         <div className="text-center mt-6">
