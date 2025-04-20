@@ -40,8 +40,13 @@ serve(async (req) => {
     
     console.log("Created blob, size:", blob.size);
     
-    // Initialize Hugging Face client
-    const hf = new HfInference(Deno.env.get('HUGGING_FACE_ACCESS_TOKEN'));
+    // Initialize Hugging Face client with the access token
+    const hfAccessToken = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
+    if (!hfAccessToken) {
+      throw new Error('Hugging Face access token not configured');
+    }
+    
+    const hf = new HfInference(hfAccessToken);
     console.log("Initialized Hugging Face client");
     
     try {
