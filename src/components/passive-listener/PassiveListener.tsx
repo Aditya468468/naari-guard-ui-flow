@@ -38,10 +38,11 @@ const PassiveListener: React.FC = () => {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gradient">Audio Recorder</h1>
         <p className="text-sm text-gray-400">
-          Automatically detects emergency keywords in your surroundings
+          Automatically detects emergency keywords in your surroundings using Hugging Face AI
         </p>
       </div>
       
+      {/* Recording control */}
       <div className={`glass-card rounded-xl p-6 mb-6 flex flex-col items-center ${
         isRecording ? 'border border-red-500/30 shadow-glow-red' : ''
       }`}>

@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
+import { HfInference } from 'https://esm.sh/@huggingface/inference@2.3.2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -33,61 +34,61 @@ serve(async (req) => {
 
     console.log("Converted to binary, size:", bytes.length);
 
-    // Create a blob from the binary data
+    // Create a blob and buffer
     const blob = new Blob([bytes], { type: 'audio/webm' });
+    const buffer = await blob.arrayBuffer();
+    
     console.log("Created blob, size:", blob.size);
     
-    // Create form data for OpenAI API
-    const formData = new FormData();
-    formData.append('file', blob, 'recording.webm');
-    formData.append('model', 'whisper-1');
+    // Initialize Hugging Face client
+    const hf = new HfInference(Deno.env.get('HUGGING_FACE_ACCESS_TOKEN'));
+    console.log("Initialized Hugging Face client");
     
-    console.log("Sending to OpenAI API...");
-    
-    // Transcribe audio using OpenAI Whisper API
-    const openaiResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-      },
-      body: formData,
-    });
-
-    if (!openaiResponse.ok) {
-      const errorText = await openaiResponse.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${errorText}`);
-    }
-
-    const transcription = await openaiResponse.json();
-    console.log('Transcription:', transcription);
-    
-    // Detect emergency keywords
-    const detectedKeywords = [];
-    const transcriptText = transcription.text.toLowerCase();
-    
-    if (emergencyKeywords && emergencyKeywords.length > 0) {
-      for (const keyword of emergencyKeywords) {
-        if (transcriptText.includes(keyword.toLowerCase())) {
-          detectedKeywords.push(keyword);
+    try {
+      console.log("Sending to Hugging Face API...");
+      
+      // Use Hugging Face's automatic speech recognition
+      const transcriptionResponse = await hf.automaticSpeechRecognition({
+        model: "openai/whisper-small",
+        data: buffer,
+      });
+      
+      console.log('Transcription response:', transcriptionResponse);
+      
+      // Extract the transcribed text
+      const transcriptText = transcriptionResponse.text || '';
+      console.log('Transcription:', transcriptText);
+      
+      // Detect emergency keywords
+      const detectedKeywords = [];
+      const lowerCaseTranscript = transcriptText.toLowerCase();
+      
+      if (emergencyKeywords && emergencyKeywords.length > 0) {
+        for (const keyword of emergencyKeywords) {
+          if (lowerCaseTranscript.includes(keyword.toLowerCase())) {
+            detectedKeywords.push(keyword);
+          }
         }
       }
+      
+      console.log("Detected keywords:", detectedKeywords);
+      
+      return new Response(
+        JSON.stringify({ 
+          transcription: transcriptText,
+          detectedKeywords 
+        }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
+    } catch (apiError) {
+      console.error('Hugging Face API error:', apiError);
+      throw new Error(`Hugging Face API error: ${apiError.message}`);
     }
-    
-    console.log("Detected keywords:", detectedKeywords);
-    
-    return new Response(
-      JSON.stringify({ 
-        transcription: transcription.text,
-        detectedKeywords 
-      }),
-      { 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
-      }
-    );
   } catch (error) {
     console.error('Error:', error);
     return new Response(
