@@ -3,6 +3,7 @@ import { Bell, ChevronRight, Download, Key, Lock, Mic, Shield, Smartphone, Volum
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '../auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
+import CabMode from '../cab/CabMode';
 
 const Settings: React.FC = () => {
   const { toast } = useToast();
@@ -48,6 +49,8 @@ const Settings: React.FC = () => {
       </p>
       
       <div className="space-y-6">
+        <CabMode />
+        
         <div className="glass-card rounded-xl overflow-hidden">
           <div className="p-3 border-b border-white/10 bg-white/5">
             <h2 className="text-white font-medium">Privacy & Security</h2>
