@@ -26,11 +26,11 @@ const Home: React.FC = () => {
         
         <SafetyRing score={safetyScore} />
         
+        <QuickActions />
+        
         <CabMode />
         
         <SafetyMap />
-        
-        <QuickActions />
         
         <div className="glass-card rounded-xl p-4 mt-6">
           <h2 className="text-lg font-medium text-white mb-3">Safety Tips</h2>
@@ -64,3 +64,4 @@ const Home: React.FC = () => {
 };
 
 export default Home;
+
