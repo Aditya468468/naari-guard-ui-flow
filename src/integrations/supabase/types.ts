@@ -66,6 +66,48 @@ export type Database = {
         }
         Relationships: []
       }
+      cab_rides: {
+        Row: {
+          auto_fetched: boolean | null
+          cab_company: string | null
+          created_at: string | null
+          destination_location: string | null
+          driver_name: string | null
+          id: string
+          is_active: boolean | null
+          source_location: string | null
+          updated_at: string | null
+          user_id: string
+          vehicle_number: string | null
+        }
+        Insert: {
+          auto_fetched?: boolean | null
+          cab_company?: string | null
+          created_at?: string | null
+          destination_location?: string | null
+          driver_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          source_location?: string | null
+          updated_at?: string | null
+          user_id: string
+          vehicle_number?: string | null
+        }
+        Update: {
+          auto_fetched?: boolean | null
+          cab_company?: string | null
+          created_at?: string | null
+          destination_location?: string | null
+          driver_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          source_location?: string | null
+          updated_at?: string | null
+          user_id?: string
+          vehicle_number?: string | null
+        }
+        Relationships: []
+      }
       emergency_logs: {
         Row: {
           created_at: string | null

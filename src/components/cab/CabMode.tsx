@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CabDetails {
   driverName: string;
@@ -48,12 +49,31 @@ const CabMode: React.FC = () => {
     });
   };
 
-  const onSubmit = (data: CabDetails) => {
-    console.log("Cab details saved:", data);
-    toast({
-      title: "Ride Details Saved",
-      description: "Your ride information has been securely stored",
-    });
+  const onSubmit = async (data: CabDetails) => {
+    try {
+      const { error } = await supabase.from('cab_rides').insert({
+        driver_name: data.driverName,
+        vehicle_number: data.vehicleNumber,
+        cab_company: data.cabCompany,
+        source_location: data.sourceLocation,
+        destination_location: data.destinationLocation,
+        auto_fetched: isAutoFetch,
+        is_active: true
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Ride Details Saved",
+        description: "Your ride information has been securely stored",
+      });
+    } catch (error) {
+      toast({
+        title: "Error Saving Ride Details",
+        description: "There was a problem saving your ride information",
+        variant: "destructive"
+      });
+    }
   };
 
   useEffect(() => {

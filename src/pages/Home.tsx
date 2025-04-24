@@ -2,13 +2,13 @@
 import React from 'react';
 import MobileLayout from '../components/layout/MobileLayout';
 import SafetyRing from '../components/home/SafetyRing';
-import SafetyMap from '../components/SafetyMap'; // Fixed import path
+import SafetyMap from '../components/SafetyMap';
 import QuickActions from '../components/home/QuickActions';
 import AIBubble from '../components/assistant/AIBubble';
+import CabMode from '../components/cab/CabMode';
 import { ShieldCheck } from 'lucide-react';
 
 const Home: React.FC = () => {
-  // For demo purposes, we'll use a fixed safety score
   const safetyScore = 85;
 
   return (
@@ -25,6 +25,8 @@ const Home: React.FC = () => {
         </div>
         
         <SafetyRing score={safetyScore} />
+        
+        <CabMode />
         
         <SafetyMap />
         
