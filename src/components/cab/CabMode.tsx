@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from '@/components/auth/AuthProvider';
 
 interface CabDetails {
   driverName: string;
@@ -25,6 +26,7 @@ const mockCabData = {
 
 const CabMode: React.FC = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isCabMode, setIsCabMode] = useState(false);
   const [isAutoFetch, setIsAutoFetch] = useState(false);
   
@@ -51,6 +53,15 @@ const CabMode: React.FC = () => {
 
   const onSubmit = async (data: CabDetails) => {
     try {
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "You must be logged in to save ride details",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const { error } = await supabase.from('cab_rides').insert({
         driver_name: data.driverName,
         vehicle_number: data.vehicleNumber,
@@ -58,7 +69,8 @@ const CabMode: React.FC = () => {
         source_location: data.sourceLocation,
         destination_location: data.destinationLocation,
         auto_fetched: isAutoFetch,
-        is_active: true
+        is_active: true,
+        user_id: user.id
       });
 
       if (error) throw error;
