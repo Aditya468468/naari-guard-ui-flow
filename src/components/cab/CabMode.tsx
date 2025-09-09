@@ -62,7 +62,7 @@ const CabMode: React.FC = () => {
         return;
       }
 
-      const { error } = await supabase.from('cab_rides').insert({
+      const { error } = await (supabase as any).from('cab_rides').insert({
         driver_name: data.driverName,
         vehicle_number: data.vehicleNumber,
         cab_company: data.cabCompany,

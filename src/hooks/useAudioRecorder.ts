@@ -38,7 +38,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
   const fetchRecordings = async () => {
     try {
       console.log("Fetching recordings for user:", user?.id);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('audio_recordings')
         .select('*')
         .eq('user_id', user?.id)
@@ -277,7 +277,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       console.log("Upload successful:", uploadData);
       
       // Save record to database
-      const { data: recordingData, error: dbError } = await supabase
+      const { data: recordingData, error: dbError } = await (supabase as any)
         .from('audio_recordings')
         .insert({
           user_id: user.id,
@@ -353,7 +353,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       console.log("Deleting recording with ID:", idString);
       
       // Get file path first
-      const { data: recordingData, error: fetchError } = await supabase
+      const { data: recordingData, error: fetchError } = await (supabase as any)
         .from('audio_recordings')
         .select('file_path')
         .eq('id', idString)
@@ -365,11 +365,11 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       }
       
       // Delete from storage if file_path exists
-      if (recordingData?.file_path) {
-        console.log("Deleting from storage:", recordingData.file_path);
+      if (recordingData && (recordingData as any).file_path) {
+        console.log("Deleting from storage:", (recordingData as any).file_path);
         const { error: storageError } = await supabase.storage
           .from('audio_recordings')
-          .remove([recordingData.file_path]);
+          .remove([(recordingData as any).file_path]);
           
         if (storageError) {
           console.error("Storage delete error:", storageError);
@@ -379,7 +379,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       
       // Delete from database
       console.log("Deleting from database:", idString);
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await (supabase as any)
         .from('audio_recordings')
         .delete()
         .eq('id', idString);

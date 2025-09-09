@@ -23,7 +23,7 @@ export function useTrustCircle() {
   const { data: contacts, isLoading } = useQuery({
     queryKey: ['trust-circle-contacts'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('trust_circle_contacts')
         .select('*')
         .order('priority', { ascending: true });
@@ -57,7 +57,7 @@ export function useTrustCircle() {
         user_id: user.id
       };
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('trust_circle_contacts')
         .insert(newContact)
         .select()
@@ -87,7 +87,7 @@ export function useTrustCircle() {
       // Filter out the is_alerted property if it exists as it's not in the DB
       const { is_alerted, ...dbContact } = contact;
       
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('trust_circle_contacts')
         .update(dbContact)
         .eq('id', contact.id)
@@ -115,7 +115,7 @@ export function useTrustCircle() {
 
   const deleteContact = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('trust_circle_contacts')
         .delete()
         .eq('id', id);
