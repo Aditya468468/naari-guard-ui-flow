@@ -1,8 +1,1 @@
-
-project_id = "evfyxonnazlekksilsxx"
-
-[functions.process-audio]
-verify_jwt = true
-
-[storage.audio_recordings]
-public = true
+project_id = "rpjzbyzpwkjrhxukuflo"
