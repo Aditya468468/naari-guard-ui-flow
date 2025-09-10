@@ -51,6 +51,7 @@ const Auth: React.FC = () => {
           email,
           password,
           options: {
+            emailRedirectTo: `${window.location.origin}/home`,
             data: {
               full_name: name,
             },
@@ -66,10 +67,17 @@ const Auth: React.FC = () => {
         setIsLogin(true);
       }
     } catch (error: any) {
+      let errorMessage = error.message;
+      
+      // Handle specific auth errors
+      if (error.message === 'Invalid login credentials') {
+        errorMessage = 'Invalid email or password. If you just signed up, please check your email to confirm your account first.';
+      }
+      
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description: errorMessage,
       });
     } finally {
       setLoading(false);
