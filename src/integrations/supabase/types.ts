@@ -50,6 +50,48 @@ export type Database = {
         }
         Relationships: []
       }
+      cab_rides: {
+        Row: {
+          auto_fetched: boolean
+          cab_company: string
+          created_at: string
+          destination_location: string
+          driver_name: string
+          id: string
+          is_active: boolean
+          source_location: string
+          updated_at: string
+          user_id: string
+          vehicle_number: string
+        }
+        Insert: {
+          auto_fetched?: boolean
+          cab_company: string
+          created_at?: string
+          destination_location: string
+          driver_name: string
+          id?: string
+          is_active?: boolean
+          source_location: string
+          updated_at?: string
+          user_id: string
+          vehicle_number: string
+        }
+        Update: {
+          auto_fetched?: boolean
+          cab_company?: string
+          created_at?: string
+          destination_location?: string
+          driver_name?: string
+          id?: string
+          is_active?: boolean
+          source_location?: string
+          updated_at?: string
+          user_id?: string
+          vehicle_number?: string
+        }
+        Relationships: []
+      }
       trust_circle_contacts: {
         Row: {
           created_at: string
