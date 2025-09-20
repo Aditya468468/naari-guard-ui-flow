@@ -240,14 +240,49 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       if (processData.detectedKeywords && processData.detectedKeywords.length > 0) {
         setDetectedKeywords(processData.detectedKeywords);
         
-        // Notify about detected keywords
+        console.log(`🚨 SAFETY ALERT: ${processData.detectedKeywords.length} keywords detected:`, processData.detectedKeywords);
+        
+        // Show immediate alert for each keyword
         for (const keyword of processData.detectedKeywords) {
           toast({
-            title: "Emergency Keyword Detected",
-            description: `The word "${keyword}" was detected in your audio.`,
+            title: "🚨 SAFETY ALERT",
+            description: `Emergency keyword "${keyword}" detected! Notifying your trust circle.`,
             variant: "destructive",
-            duration: 5000,
+            duration: 8000,
           });
+        }
+
+        // Send emergency notifications to trust circle if safety level is HIGH_ALERT
+        if (processData.safetyLevel === 'HIGH_ALERT') {
+          try {
+            console.log("Triggering emergency notifications...");
+            const { data: notifyData, error: notifyError } = await supabase.functions.invoke(
+              'send-emergency-notifications',
+              {
+                body: {
+                  alertType: 'AUDIO_KEYWORD_DETECTION',
+                  detectedKeywords: processData.detectedKeywords,
+                  transcription: processData.transcription,
+                  audioRecordingId: null, // Will be updated after DB insert
+                  severity: 'HIGH',
+                  timestamp: new Date().toISOString()
+                }
+              }
+            );
+
+            if (notifyError) {
+              console.error("Emergency notification error:", notifyError);
+            } else {
+              console.log("Emergency notifications sent successfully:", notifyData);
+              toast({
+                title: "Emergency Contacts Notified",
+                description: "Your trusted contacts have been alerted about this safety concern.",
+                duration: 6000,
+              });
+            }
+          } catch (notifyError) {
+            console.error("Failed to send emergency notifications:", notifyError);
+          }
         }
       }
 

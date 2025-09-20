@@ -1,21 +1,27 @@
-import React from 'react';
-import { Mic, MicOff, Volume2, Shield, File, Save, Trash, Info, Play, Pause, Siren } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mic, MicOff, Volume2, Shield, File, Save, Trash, Info, Play, Pause, Siren, Settings } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from 'react-router-dom';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import useAudioRecorder from '@/hooks/useAudioRecorder';
+import SafetyKeywordsConfig from '@/components/safety/SafetyKeywordsConfig';
 
 const PassiveListener: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [activeKeywords, setActiveKeywords] = useState<string[]>([]);
   
-  // Extended emergency keywords list
-  const emergencyKeywords = [
+  // Extended emergency keywords list (will be enhanced by SafetyKeywordsConfig)
+  const defaultEmergencyKeywords = [
     'help', 'emergency', 'stop', 'danger', 
     'save me', 'please help', 'assistance', 'sos', 
     'need help', 'call police', 'call 911', 'help me',
     'save me', 'danger', 'emergency', 'please stop',
     'leave me alone', 'get away', 'no', 'stay away'
   ];
+
+  const emergencyKeywords = activeKeywords.length > 0 ? activeKeywords : defaultEmergencyKeywords;
   
   const {
     isRecording,
@@ -59,9 +65,29 @@ const PassiveListener: React.FC = () => {
   return (
     <div className="p-4 flex flex-col h-full">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gradient">Audio Recorder</h1>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-2xl font-bold text-gradient">Safety Audio Monitor</h1>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="glass-card border-white/10">
+                <Settings className="w-4 h-4 mr-2" />
+                Keywords
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Safety Keywords Configuration</DialogTitle>
+              </DialogHeader>
+              <SafetyKeywordsConfig 
+                onKeywordsChange={setActiveKeywords}
+                initialKeywords={[]}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
         <p className="text-sm text-gray-400">
-          Automatically detects emergency keywords in your surroundings using Hugging Face AI
+          Advanced AI-powered safety monitoring with {emergencyKeywords.length} active keywords. 
+          Automatically detects distress signals and alerts your trust circle.
         </p>
       </div>
       
