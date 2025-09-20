@@ -1,1 +1,4 @@
 project_id = "vdkkpxtbipwtxmpetwwh"
+
+[functions.send-emergency-notifications]
+verify_jwt = false

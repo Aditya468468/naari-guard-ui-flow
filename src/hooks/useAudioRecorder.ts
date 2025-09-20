@@ -38,7 +38,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
   const fetchRecordings = async () => {
     try {
       console.log("Fetching recordings for user:", user?.id);
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('audio_recordings')
         .select('*')
         .eq('user_id', user?.id)
@@ -277,7 +277,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       console.log("Upload successful:", uploadData);
       
       // Save record to database
-      const { data: recordingData, error: dbError } = await (supabase as any)
+      const { data: recordingData, error: dbError } = await supabase
         .from('audio_recordings')
         .insert({
           user_id: user.id,
@@ -353,7 +353,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       console.log("Deleting recording with ID:", idString);
       
       // Get file path first
-      const { data: recordingData, error: fetchError } = await (supabase as any)
+      const { data: recordingData, error: fetchError } = await supabase
         .from('audio_recordings')
         .select('file_path')
         .eq('id', idString)
@@ -379,7 +379,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       
       // Delete from database
       console.log("Deleting from database:", idString);
-      const { error: deleteError } = await (supabase as any)
+      const { error: deleteError } = await supabase
         .from('audio_recordings')
         .delete()
         .eq('id', idString);
