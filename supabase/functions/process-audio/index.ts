@@ -118,8 +118,8 @@ serve(async (req) => {
     
     // Prepare form data for OpenAI Whisper API
     const formData = new FormData();
-    const audioBlob = new Blob([binaryAudio], { type: 'audio/webm' });
-    formData.append('file', audioBlob, 'audio.webm');
+    const audioFile = new Blob([binaryAudio], { type: 'audio/webm' });
+    formData.append('file', audioFile, 'audio.webm');
     formData.append('model', 'whisper-1');
     formData.append('language', 'en'); // Focus on English for better safety keyword detection
 
