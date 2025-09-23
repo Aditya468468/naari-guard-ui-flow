@@ -40,6 +40,8 @@ const Auth: React.FC = () => {
           password,
         });
         
+        console.log('Login attempt:', { error });
+        
         if (error) throw error;
         
         // Redirect to home or the page they were trying to access
