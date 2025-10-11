@@ -221,7 +221,10 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       console.log("Converted to base64, length:", base64Data.length);
 
       // Process audio with edge function
-      console.log("Calling process-audio function with Hugging Face...");
+      console.log('🎙️ Calling process-audio function...');
+      console.log('📝 Emergency keywords being sent:', emergencyKeywords);
+      console.log('📊 Total keywords:', emergencyKeywords?.length || 0);
+      
       const { data: processData, error: processError } = await supabase.functions.invoke(
         'process-audio',
         {
@@ -230,11 +233,17 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       );
 
       if (processError) {
-        console.error("Process error:", processError);
+        console.error("❌ Process error:", processError);
         throw processError;
       }
       
-      console.log("Processed data from Hugging Face:", processData);
+      console.log('==========================================');
+      console.log("✅ Processed data received:", processData);
+      console.log('📝 Transcription:', processData?.transcription);
+      console.log('🚨 Detected keywords:', processData?.detectedKeywords);
+      console.log('📊 Total keywords checked:', processData?.totalKeywordsChecked);
+      console.log('🚦 Safety level:', processData?.safetyLevel);
+      console.log('==========================================');
       
       // If keywords were detected
       if (processData.detectedKeywords && processData.detectedKeywords.length > 0) {

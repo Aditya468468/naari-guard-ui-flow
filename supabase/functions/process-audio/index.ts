@@ -7,11 +7,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Comprehensive safety keywords for women's safety
+// Comprehensive safety keywords for women's safety (case-insensitive matching)
 const DEFAULT_SAFETY_KEYWORDS = [
-  // Emergency distress words
+  // Emergency distress words (English)
   'help', 'help me', 'save me', 'danger', 'emergency', 'urgent', 'scared', 'afraid', 'terrified',
   'panic', 'trapped', 'stuck', 'lost', 'alone', 'vulnerable', 'unsafe', 'threatened', 'intimidated',
+  
+  // Hindi/Hinglish emergency words
+  'bachao', 'bacha lo', 'madad', 'khatara', 'dar lag raha hai', 'please help',
   
   // Physical threats and violence
   'attack', 'attacking', 'attacker', 'assault', 'assaulting', 'hit', 'hitting', 'beat', 'beating',
@@ -148,21 +151,69 @@ serve(async (req) => {
       allKeywords.push(...emergencyKeywords);
     }
 
-    // Enhanced keyword detection algorithm
+    // Enhanced keyword detection algorithm with fuzzy matching
     const detectedKeywords: string[] = [];
-    const lowerCaseTranscript = transcriptText.toLowerCase();
+    const lowerCaseTranscript = transcriptText.toLowerCase().trim();
     
-    console.log("Checking for keywords in:", lowerCaseTranscript);
+    console.log("==========================================");
+    console.log("📝 TRANSCRIPTION TEXT:", transcriptText);
+    console.log("🔍 CHECKING FOR KEYWORDS IN:", lowerCaseTranscript);
+    console.log("📊 TOTAL KEYWORDS TO CHECK:", allKeywords.length);
+    console.log("==========================================");
     
-    for (const keyword of allKeywords) {
-      const keywordLower = keyword.toLowerCase();
+    // Helper function for fuzzy matching (handles slight variations)
+    const fuzzyMatch = (text: string, keyword: string): boolean => {
+      const normalizedText = text.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+      const normalizedKeyword = keyword.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
       
-      // Check for exact matches and partial word matches
-      if (lowerCaseTranscript.includes(keywordLower)) {
+      // Exact match
+      if (normalizedText.includes(normalizedKeyword)) return true;
+      
+      // Word boundary match (e.g., "help" matches "help me" but not "helpful")
+      const words = normalizedText.split(' ');
+      const keywordWords = normalizedKeyword.split(' ');
+      
+      // Check if all keyword words appear in sequence
+      for (let i = 0; i <= words.length - keywordWords.length; i++) {
+        let match = true;
+        for (let j = 0; j < keywordWords.length; j++) {
+          if (words[i + j] !== keywordWords[j]) {
+            match = false;
+            break;
+          }
+        }
+        if (match) return true;
+      }
+      
+      // Check for partial matches (at least 80% similarity for single words)
+      if (keywordWords.length === 1 && normalizedKeyword.length > 3) {
+        for (const word of words) {
+          if (word.length < 3) continue;
+          
+          // Calculate similarity
+          const longer = word.length > normalizedKeyword.length ? word : normalizedKeyword;
+          const shorter = word.length > normalizedKeyword.length ? normalizedKeyword : word;
+          
+          let matches = 0;
+          for (let i = 0; i < shorter.length; i++) {
+            if (longer.includes(shorter[i])) matches++;
+          }
+          
+          const similarity = matches / longer.length;
+          if (similarity >= 0.8) return true;
+        }
+      }
+      
+      return false;
+    };
+    
+    // Check each keyword
+    for (const keyword of allKeywords) {
+      if (fuzzyMatch(lowerCaseTranscript, keyword)) {
         // Avoid duplicates
         if (!detectedKeywords.includes(keyword)) {
           detectedKeywords.push(keyword);
-          console.log(`⚠️ SAFETY KEYWORD DETECTED: ${keyword}`);
+          console.log(`🚨 SAFETY KEYWORD DETECTED: "${keyword}"`);
         }
       }
     }
@@ -191,7 +242,11 @@ serve(async (req) => {
       }
     }
     
-    console.log("Final detected keywords:", detectedKeywords);
+    console.log("==========================================");
+    console.log("✅ FINAL DETECTED KEYWORDS:", detectedKeywords);
+    console.log("📊 TOTAL KEYWORDS DETECTED:", detectedKeywords.length);
+    console.log("🚦 SAFETY LEVEL:", detectedKeywords.length > 0 ? 'HIGH_ALERT' : 'NORMAL');
+    console.log("==========================================");
     
     return new Response(
       JSON.stringify({ 
