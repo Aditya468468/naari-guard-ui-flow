@@ -4,6 +4,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '../auth/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import CabMode from '../cab/CabMode';
+import HealthSafetyToggle from './HealthSafetyToggle';
+import WearableIntegration from './WearableIntegration';
+import InvisibleModeSelector from './InvisibleModeSelector';
 
 const Settings: React.FC = () => {
   const { toast } = useToast();
@@ -50,6 +53,12 @@ const Settings: React.FC = () => {
       
       <div className="space-y-6">
         <CabMode />
+        
+        <HealthSafetyToggle />
+        
+        <WearableIntegration />
+        
+        <InvisibleModeSelector />
         
         <div className="glass-card rounded-xl overflow-hidden">
           <div className="p-3 border-b border-white/10 bg-white/5">

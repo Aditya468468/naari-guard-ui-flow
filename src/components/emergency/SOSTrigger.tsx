@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AlertTriangle, PhoneCall, Share, Clock, Shield } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from 'react-router-dom';
+import DecoyVoiceAI from './DecoyVoiceAI';
 
 const SOSTrigger: React.FC = () => {
   const { toast } = useToast();
@@ -144,7 +145,9 @@ const SOSTrigger: React.FC = () => {
         </ul>
       </div>
       
-      <div className="glass-card rounded-xl p-4 flex items-center gap-3">
+      <DecoyVoiceAI />
+      
+      <div className="glass-card rounded-xl p-4 flex items-center gap-3 mt-4">
         <Shield className="w-6 h-6 text-naari-safe" />
         <div>
           <h3 className="text-white text-sm font-medium">Safety Check-In</h3>

@@ -6,6 +6,7 @@ import SafetyMap from '../components/SafetyMap';
 import QuickActions from '../components/home/QuickActions';
 import AIBubble from '../components/assistant/AIBubble';
 import CabMode from '../components/cab/CabMode';
+import EmotionWidget from '../components/home/EmotionWidget';
 import { ShieldCheck } from 'lucide-react';
 
 const Home: React.FC = () => {
@@ -25,6 +26,12 @@ const Home: React.FC = () => {
         </div>
         
         <SafetyRing score={safetyScore} />
+        
+        <div className="my-4" />
+        
+        <EmotionWidget />
+        
+        <div className="my-4" />
         
         <SafetyMap />
         

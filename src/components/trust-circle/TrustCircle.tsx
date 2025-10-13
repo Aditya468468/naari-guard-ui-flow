@@ -4,6 +4,7 @@ import { Bell, Check, ChevronRight, MoreHorizontal, Phone, Share, Shield, UserPl
 import { useToast } from "@/hooks/use-toast";
 import { useTrustCircle, TrustCircleContact } from '@/hooks/useTrustCircle';
 import AddContactModal from './AddContactModal';
+import CommunityMesh from './CommunityMesh';
 
 const TrustCircle: React.FC = () => {
   const { toast } = useToast();
@@ -228,6 +229,8 @@ const TrustCircle: React.FC = () => {
           </div>
         ))}
       </div>
+      
+      <CommunityMesh />
       
       <div className="glass-card rounded-xl p-4 flex items-center justify-between cursor-pointer">
         <div className="flex items-center gap-2">
