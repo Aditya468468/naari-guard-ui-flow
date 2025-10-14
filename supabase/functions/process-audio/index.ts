@@ -111,39 +111,47 @@ serve(async (req) => {
       throw new Error('Empty audio data after conversion');
     }
 
-    // Use OpenAI Whisper for more accurate transcription
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openaiApiKey) {
-      throw new Error('OpenAI API key not configured');
+    // Use Lovable AI Gateway for transcription
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log("Using OpenAI Whisper for transcription...");
+    console.log("Using Lovable AI for transcription...");
     
-    // Prepare form data for OpenAI Whisper API
+    // Prepare form data for Lovable AI
     const formData = new FormData();
     const audioFile = new Blob([binaryAudio], { type: 'audio/webm' });
     formData.append('file', audioFile, 'audio.webm');
     formData.append('model', 'whisper-1');
-    formData.append('language', 'en'); // Focus on English for better safety keyword detection
 
-    // Send to OpenAI Whisper API
-    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    // Send to Lovable AI Gateway
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
       },
       body: formData,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${errorText}`);
+      console.error('Lovable AI error:', errorText);
+      
+      // Handle rate limits and payment errors
+      if (response.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again in a moment.');
+      }
+      if (response.status === 402) {
+        throw new Error('AI service requires credits. Please add credits to your workspace.');
+      }
+      
+      throw new Error(`Lovable AI error: ${errorText}`);
     }
 
     const transcriptionData = await response.json();
     const transcriptText = transcriptionData.text || '';
-    console.log('OpenAI Whisper transcription:', transcriptText);
+    console.log('Lovable AI transcription:', transcriptText);
 
     // Combine provided keywords with default safety keywords
     const allKeywords = [...DEFAULT_SAFETY_KEYWORDS];
