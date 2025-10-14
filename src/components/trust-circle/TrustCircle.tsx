@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Bell, Check, ChevronRight, MoreHorizontal, Phone, Share, Shield, UserPlus, AlertTriangle } from 'lucide-react';
+import { Bell, Check, ChevronRight, MoreHorizontal, Phone, Share, Shield, UserPlus, AlertTriangle, Trash } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useTrustCircle, TrustCircleContact } from '@/hooks/useTrustCircle';
 import AddContactModal from './AddContactModal';
@@ -181,7 +181,7 @@ const TrustCircle: React.FC = () => {
               </div>
             </div>
             
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               <button className="flex flex-col items-center justify-center bg-white/5 rounded-lg p-2 hover:bg-white/10 transition-colors">
                 <Phone className="w-4 h-4 text-naari-teal mb-1" />
                 <span className="text-xs text-gray-300">Call</span>
@@ -202,6 +202,18 @@ const TrustCircle: React.FC = () => {
               <button className="flex flex-col items-center justify-center bg-white/5 rounded-lg p-2 hover:bg-white/10 transition-colors">
                 <Share className="w-4 h-4 text-gray-300 mb-1" />
                 <span className="text-xs text-gray-300">Share</span>
+              </button>
+              
+              <button 
+                className="flex flex-col items-center justify-center bg-red-500/10 rounded-lg p-2 hover:bg-red-500/20 transition-colors"
+                onClick={() => {
+                  if (window.confirm(`Delete ${contact.name} from your trust circle?`)) {
+                    deleteContact.mutate(contact.id);
+                  }
+                }}
+              >
+                <Trash className="w-4 h-4 text-red-400 mb-1" />
+                <span className="text-xs text-red-400">Delete</span>
               </button>
             </div>
             

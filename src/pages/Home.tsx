@@ -7,6 +7,7 @@ import QuickActions from '../components/home/QuickActions';
 import AIBubble from '../components/assistant/AIBubble';
 import CabMode from '../components/cab/CabMode';
 import EmotionWidget from '../components/home/EmotionWidget';
+import AIChatbot from '../components/assistant/AIChatbot';
 import { ShieldCheck } from 'lucide-react';
 
 const Home: React.FC = () => {
@@ -70,6 +71,7 @@ const Home: React.FC = () => {
       </div>
       
       <AIBubble />
+      <AIChatbot />
     </MobileLayout>
   );
 };

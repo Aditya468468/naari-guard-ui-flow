@@ -7,6 +7,7 @@ import CabMode from '../cab/CabMode';
 import HealthSafetyToggle from './HealthSafetyToggle';
 import WearableIntegration from './WearableIntegration';
 import InvisibleModeSelector from './InvisibleModeSelector';
+import { useState as useReactState } from 'react';
 
 const Settings: React.FC = () => {
   const { toast } = useToast();
@@ -19,6 +20,8 @@ const Settings: React.FC = () => {
     emergencyKeyword: 'help me now',
     notifications: true,
   });
+  
+  const [invisibleMode, setInvisibleMode] = useState(false);
   
   const toggleSetting = (key: keyof typeof settings) => {
     setSettings(prev => ({
@@ -59,6 +62,55 @@ const Settings: React.FC = () => {
         <WearableIntegration />
         
         <InvisibleModeSelector />
+        
+        <div className="glass-card rounded-xl overflow-hidden">
+          <div className="p-3 border-b border-white/10 bg-white/5">
+            <h2 className="text-white font-medium">Invisible Mode</h2>
+          </div>
+          
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-naari-purple/20 flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-naari-purple" />
+                </div>
+                <div>
+                  <h3 className="text-white text-sm font-medium">Hide Live Location</h3>
+                  <p className="text-xs text-gray-500">Privacy protection mode</p>
+                </div>
+              </div>
+              <div className="relative">
+                <div 
+                  className={`w-12 h-6 rounded-full flex items-center px-1 transition-all ${
+                    invisibleMode ? 'bg-naari-purple' : 'bg-gray-700'
+                  }`}
+                  onClick={() => {
+                    setInvisibleMode(!invisibleMode);
+                    toast({
+                      title: invisibleMode ? "Invisible Mode Deactivated" : "Invisible Mode Active",
+                      description: invisibleMode 
+                        ? "Your location is now visible to your trust circle" 
+                        : "Your location is now hidden from others",
+                      variant: invisibleMode ? "default" : "destructive",
+                    });
+                  }}
+                >
+                  <div 
+                    className={`w-4 h-4 rounded-full bg-white transition-all ${
+                      invisibleMode ? 'ml-6' : 'ml-0'
+                    }`} 
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {invisibleMode && (
+              <div className="mt-3 p-3 bg-naari-purple/10 rounded-lg border border-naari-purple/20">
+                <p className="text-xs text-naari-purple">🕵️ Invisible Mode is Active</p>
+              </div>
+            )}
+          </div>
+        </div>
         
         <div className="glass-card rounded-xl overflow-hidden">
           <div className="p-3 border-b border-white/10 bg-white/5">
