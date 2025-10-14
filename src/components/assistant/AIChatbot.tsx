@@ -41,16 +41,27 @@ const AIChatbot: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageText = input.trim();
     setInput('');
     setIsLoading(true);
 
     try {
-      // Call OpenAI through Supabase edge function
+      console.log('Sending message to AI chatbot:', messageText);
+      
       const { data, error } = await supabase.functions.invoke('ai-chatbot', {
-        body: { message: input.trim() }
+        body: { message: messageText }
       });
 
-      if (error) throw error;
+      console.log('AI chatbot response:', data, error);
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      if (!data || !data.response) {
+        throw new Error('Invalid response from AI');
+      }
 
       const assistantMessage: Message = {
         role: 'assistant',
@@ -61,9 +72,13 @@ const AIChatbot: React.FC = () => {
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Chatbot error:', error);
+      
+      // Remove the user message on error
+      setMessages(prev => prev.slice(0, -1));
+      
       toast({
         title: "Error",
-        description: "Failed to get response. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to get response. Please try again.",
         variant: "destructive",
       });
     } finally {
