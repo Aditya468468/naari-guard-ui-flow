@@ -191,18 +191,8 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
   };
 
   const processRecording = async (blob: Blob) => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to save recordings.",
-        variant: "destructive",
-      });
-      setStatus('error');
-      return;
-    }
-    
     try {
-      console.log("Processing recording, blob size:", blob.size);
+      console.log("🎙️ Processing recording for keyword detection, blob size:", blob.size);
       
       // Convert blob to base64
       const reader = new FileReader();
@@ -218,10 +208,10 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       });
       reader.readAsDataURL(blob);
       const base64Data = await base64Promise;
-      console.log("Converted to base64, length:", base64Data.length);
+      console.log("✅ Converted to base64, length:", base64Data.length);
 
-      // Process audio with edge function
-      console.log('🎙️ Calling process-audio function...');
+      // Process audio with edge function for keyword detection
+      console.log('🎙️ Calling process-audio function for keyword detection...');
       console.log('📝 Emergency keywords being sent:', emergencyKeywords);
       console.log('📊 Total keywords:', emergencyKeywords?.length || 0);
       
@@ -238,33 +228,31 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
       }
       
       console.log('==========================================');
-      console.log("✅ Processed data received:", processData);
+      console.log("✅ KEYWORD DETECTION RESULTS:");
       console.log('📝 Transcription:', processData?.transcription);
       console.log('🚨 Detected keywords:', processData?.detectedKeywords);
       console.log('📊 Total keywords checked:', processData?.totalKeywordsChecked);
       console.log('🚦 Safety level:', processData?.safetyLevel);
       console.log('==========================================');
       
-      // If keywords were detected
+      // PRIORITY: If keywords were detected, trigger immediate alerts
       if (processData.detectedKeywords && processData.detectedKeywords.length > 0) {
         setDetectedKeywords(processData.detectedKeywords);
         
-        console.log(`🚨 SAFETY ALERT: ${processData.detectedKeywords.length} keywords detected:`, processData.detectedKeywords);
+        console.log(`🚨🚨🚨 SAFETY ALERT: ${processData.detectedKeywords.length} keywords detected:`, processData.detectedKeywords);
         
-        // Show immediate alert for each keyword
-        for (const keyword of processData.detectedKeywords) {
-          toast({
-            title: "🚨 SAFETY ALERT",
-            description: `Emergency keyword "${keyword}" detected! Notifying your trust circle.`,
-            variant: "destructive",
-            duration: 8000,
-          });
-        }
+        // Show immediate visual alert
+        toast({
+          title: "🚨 EMERGENCY ALERT!",
+          description: `Detected: ${processData.detectedKeywords.join(', ')}`,
+          variant: "destructive",
+          duration: 10000,
+        });
 
-        // Send emergency notifications to trust circle if safety level is HIGH_ALERT
+        // Send emergency notifications immediately
         if (processData.safetyLevel === 'HIGH_ALERT') {
           try {
-            console.log("Triggering emergency notifications...");
+            console.log("🚨 TRIGGERING EMERGENCY NOTIFICATIONS TO TRUST CIRCLE...");
             const { data: notifyData, error: notifyError } = await supabase.functions.invoke(
               'send-emergency-notifications',
               {
@@ -272,7 +260,7 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
                   alertType: 'AUDIO_KEYWORD_DETECTION',
                   detectedKeywords: processData.detectedKeywords,
                   transcription: processData.transcription,
-                  audioRecordingId: null, // Will be updated after DB insert
+                  audioRecordingId: null,
                   severity: 'HIGH',
                   timestamp: new Date().toISOString()
                 }
@@ -280,81 +268,77 @@ export const useAudioRecorder = (emergencyKeywords: string[] = []) => {
             );
 
             if (notifyError) {
-              console.error("Emergency notification error:", notifyError);
+              console.error("❌ Emergency notification error:", notifyError);
             } else {
-              console.log("Emergency notifications sent successfully:", notifyData);
+              console.log("✅ Emergency notifications sent successfully!");
               toast({
-                title: "Emergency Contacts Notified",
-                description: "Your trusted contacts have been alerted about this safety concern.",
-                duration: 6000,
+                title: "🆘 Trust Circle Notified",
+                description: "Your emergency contacts have been alerted!",
+                duration: 8000,
               });
             }
           } catch (notifyError) {
-            console.error("Failed to send emergency notifications:", notifyError);
+            console.error("❌ Failed to send emergency notifications:", notifyError);
           }
         }
+      } else {
+        console.log("✅ No emergency keywords detected. Audio is safe.");
       }
 
-      // Format recording duration
-      const hours = Math.floor(recordingTime / 3600);
-      const minutes = Math.floor((recordingTime % 3600) / 60);
-      const seconds = recordingTime % 60;
-      
-      const formattedTime = hours > 0 
-        ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}` 
-        : `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      // Only save to DB if user is authenticated (optional)
+      if (user) {
+        try {
+          const hours = Math.floor(recordingTime / 3600);
+          const minutes = Math.floor((recordingTime % 3600) / 60);
+          const seconds = recordingTime % 60;
+          
+          const formattedTime = hours > 0 
+            ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}` 
+            : `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-      // First create bucket if it doesn't exist using the storage.sql
-      
-      // Save audio to Storage
-      const fileName = `${user.id}/${Date.now()}.webm`;
-      console.log("Uploading to storage with filename:", fileName);
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('audio_recordings')
-        .upload(fileName, blob);
-        
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        throw uploadError;
+          const fileName = `${user.id}/${Date.now()}.webm`;
+          console.log("💾 Saving recording to storage:", fileName);
+          
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('audio_recordings')
+            .upload(fileName, blob);
+            
+          if (uploadError) {
+            console.error("⚠️ Upload error (non-critical):", uploadError);
+          } else {
+            const { error: dbError } = await supabase
+              .from('audio_recordings')
+              .insert({
+                user_id: user.id,
+                duration: formattedTime,
+                file_path: fileName,
+                detected_keywords: processData.detectedKeywords || [],
+              });
+              
+            if (dbError) {
+              console.error("⚠️ Database error (non-critical):", dbError);
+            } else {
+              await fetchRecordings();
+              toast({
+                title: "Recording Saved",
+                description: `${formattedTime} of audio stored.`,
+                duration: 2000,
+              });
+            }
+          }
+        } catch (saveError) {
+          console.error("⚠️ Error saving recording (non-critical):", saveError);
+        }
       }
-
-      console.log("Upload successful:", uploadData);
       
-      // Save record to database
-      const { data: recordingData, error: dbError } = await supabase
-        .from('audio_recordings')
-        .insert({
-          user_id: user.id,
-          duration: formattedTime,
-          file_path: fileName,
-          detected_keywords: processData.detectedKeywords || [],
-        })
-        .select()
-        .single();
-        
-      if (dbError) {
-        console.error("Database error:", dbError);
-        throw dbError;
-      }
-
-      console.log("Database entry successful:", recordingData);
-
-      // Refresh recordings
-      await fetchRecordings();
+      setStatus(processData.detectedKeywords?.length > 0 ? 'saved' : 'idle');
       
-      setStatus('saved');
-      
-      toast({
-        title: "Recording Saved",
-        description: `${formattedTime} of audio has been safely stored.`,
-        duration: 3000,
-      });
     } catch (error) {
-      console.error('Error processing recording:', error);
+      console.error('❌ Error processing recording:', error);
       setStatus('error');
       toast({
         title: "Processing Error",
-        description: "Failed to process and save recording.",
+        description: "Failed to analyze audio. Please try again.",
         variant: "destructive",
       });
     }
