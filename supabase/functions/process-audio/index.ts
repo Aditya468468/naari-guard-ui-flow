@@ -111,47 +111,50 @@ serve(async (req) => {
       throw new Error('Empty audio data after conversion');
     }
 
-    // Use Lovable AI Gateway for transcription
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableApiKey) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    // Use OpenAI Whisper for transcription
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openaiApiKey) {
+      throw new Error('OPENAI_API_KEY is not configured');
     }
 
-    console.log("Using Lovable AI for transcription...");
+    console.log("Using OpenAI Whisper for transcription...");
     
-    // Prepare form data for Lovable AI
+    // Prepare form data for OpenAI Whisper
     const formData = new FormData();
     const audioFile = new Blob([binaryAudio], { type: 'audio/webm' });
     formData.append('file', audioFile, 'audio.webm');
     formData.append('model', 'whisper-1');
 
-    // Send to Lovable AI Gateway
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/audio/transcriptions', {
+    // Send to OpenAI Whisper API
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
+        'Authorization': `Bearer ${openaiApiKey}`,
       },
       body: formData,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI error:', errorText);
+      console.error('OpenAI error:', errorText);
       
-      // Handle rate limits and payment errors
+      // Handle rate limits
       if (response.status === 429) {
-        throw new Error('Rate limit exceeded. Please try again in a moment.');
+        throw new Error('OpenAI rate limit exceeded. Please try again in a moment.');
       }
-      if (response.status === 402) {
-        throw new Error('AI service requires credits. Please add credits to your workspace.');
+      if (response.status === 401) {
+        throw new Error('OpenAI API key is invalid or expired.');
+      }
+      if (response.status === 402 || response.status === 403) {
+        throw new Error('OpenAI API quota exceeded. Please check your OpenAI account.');
       }
       
-      throw new Error(`Lovable AI error: ${errorText}`);
+      throw new Error(`OpenAI error: ${errorText}`);
     }
 
     const transcriptionData = await response.json();
     const transcriptText = transcriptionData.text || '';
-    console.log('Lovable AI transcription:', transcriptText);
+    console.log('OpenAI transcription:', transcriptText);
 
     // Combine provided keywords with default safety keywords
     const allKeywords = [...DEFAULT_SAFETY_KEYWORDS];
