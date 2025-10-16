@@ -7,12 +7,13 @@ import CabMode from '../cab/CabMode';
 import HealthSafetyToggle from './HealthSafetyToggle';
 import WearableIntegration from './WearableIntegration';
 import InvisibleModeSelector from './InvisibleModeSelector';
-import { useState as useReactState } from 'react';
+import { useInvisibleMode } from '@/contexts/InvisibleModeContext';
 
 const Settings: React.FC = () => {
   const { toast } = useToast();
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const { isInvisibleMode, activateInvisibleMode, deactivateInvisibleMode } = useInvisibleMode();
   const [settings, setSettings] = useState({
     offlineMode: false,
     aiListening: true,
@@ -20,8 +21,6 @@ const Settings: React.FC = () => {
     emergencyKeyword: 'help me now',
     notifications: true,
   });
-  
-  const [invisibleMode, setInvisibleMode] = useState(false);
   
   const toggleSetting = (key: keyof typeof settings) => {
     setSettings(prev => ({
@@ -82,31 +81,34 @@ const Settings: React.FC = () => {
               <div className="relative">
                 <div 
                   className={`w-12 h-6 rounded-full flex items-center px-1 transition-all ${
-                    invisibleMode ? 'bg-naari-purple' : 'bg-gray-700'
+                    isInvisibleMode ? 'bg-naari-purple' : 'bg-gray-700'
                   }`}
                   onClick={() => {
-                    setInvisibleMode(!invisibleMode);
+                    if (isInvisibleMode) {
+                      deactivateInvisibleMode();
+                    } else {
+                      activateInvisibleMode();
+                    }
                     toast({
-                      title: invisibleMode ? "Invisible Mode Deactivated" : "Invisible Mode Active",
-                      description: invisibleMode 
-                        ? "Your location is now visible to your trust circle" 
-                        : "Your location is now hidden from others",
-                      variant: invisibleMode ? "default" : "destructive",
+                      title: isInvisibleMode ? "Invisible Mode Deactivated" : "Invisible Mode Active",
+                      description: isInvisibleMode 
+                        ? "Calculator mode disabled" 
+                        : "App disguised as calculator - type 0000 to exit",
                     });
                   }}
                 >
                   <div 
                     className={`w-4 h-4 rounded-full bg-white transition-all ${
-                      invisibleMode ? 'ml-6' : 'ml-0'
+                      isInvisibleMode ? 'ml-6' : 'ml-0'
                     }`} 
                   />
                 </div>
               </div>
             </div>
             
-            {invisibleMode && (
+            {isInvisibleMode && (
               <div className="mt-3 p-3 bg-naari-purple/10 rounded-lg border border-naari-purple/20">
-                <p className="text-xs text-naari-purple">🕵️ Invisible Mode is Active</p>
+                <p className="text-xs text-naari-purple">🕵️ Invisible Mode is Active - Type 0000 in calculator to exit</p>
               </div>
             )}
           </div>

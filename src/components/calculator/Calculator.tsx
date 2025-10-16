@@ -1,14 +1,29 @@
 
 import React, { useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { useInvisibleMode } from '@/contexts/InvisibleModeContext';
+import { useToast } from '@/hooks/use-toast';
 
 const Calculator: React.FC = () => {
   const [display, setDisplay] = useState('0');
-  const [emergencyCode, setEmergencyCode] = useState('9999');
+  const [emergencyCode] = useState('9999');
+  const [exitCode] = useState('0000');
   const [isChecking, setIsChecking] = useState(false);
   const [tempEmergency, setTempEmergency] = useState(false);
+  const { deactivateInvisibleMode } = useInvisibleMode();
+  const { toast } = useToast();
   
   const handleButtonPress = (value: string) => {
+    // Check if exit code is entered (0000)
+    if (display === exitCode) {
+      deactivateInvisibleMode();
+      toast({
+        title: "Invisible Mode Deactivated",
+        description: "Returning to normal mode...",
+      });
+      return;
+    }
+    
     // Check if emergency code is entered
     if (display === emergencyCode) {
       setIsChecking(true);
