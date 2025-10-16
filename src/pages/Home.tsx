@@ -4,10 +4,8 @@ import MobileLayout from '../components/layout/MobileLayout';
 import SafetyRing from '../components/home/SafetyRing';
 import SafetyMap from '../components/SafetyMap';
 import QuickActions from '../components/home/QuickActions';
-import AIBubble from '../components/assistant/AIBubble';
 import CabMode from '../components/cab/CabMode';
 import EmotionWidget from '../components/home/EmotionWidget';
-import AIChatbot from '../components/assistant/AIChatbot';
 import { ShieldCheck } from 'lucide-react';
 
 const Home: React.FC = () => {
@@ -69,9 +67,6 @@ const Home: React.FC = () => {
           </div>
         </div>
       </div>
-      
-      <AIBubble />
-      <AIChatbot />
     </MobileLayout>
   );
 };
