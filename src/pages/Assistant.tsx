@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import MobileLayout from '../components/layout/MobileLayout';
-import AIBubble from '../components/assistant/AIBubble';
+import AIChatbot from '../components/assistant/AIChatbot';
 import SupportChat from '../components/assistant/SupportChat';
 import { MessageCircle, HeartHandshake } from 'lucide-react';
 
@@ -37,7 +37,7 @@ const Assistant: React.FC = () => {
           </button>
         </div>
         
-        {activeTab === 'chat' ? <AIBubble /> : <SupportChat />}
+        {activeTab === 'chat' ? <AIChatbot /> : <SupportChat />}
       </div>
     </MobileLayout>
   );
