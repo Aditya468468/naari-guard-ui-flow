@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 const Calculator: React.FC = () => {
   const [display, setDisplay] = useState('0');
   const [emergencyCode] = useState('9999');
-  const [exitCode] = useState('0000');
+  const [exitCode] = useState('1111');
   const [isChecking, setIsChecking] = useState(false);
   const [tempEmergency, setTempEmergency] = useState(false);
   const { deactivateInvisibleMode } = useInvisibleMode();
