@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Heart, Scale, Phone, FileText, MessageCircle, MapPin, Clock, Volume2, Sparkles, Shield, Building2, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Heart, Scale, Phone, FileText, MessageCircle, MapPin, Clock, Volume2, Sparkles, Shield, Building2, AlertCircle, Square } from 'lucide-react';
+import BreathingExercise from './BreathingExercise';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -30,6 +31,20 @@ const SupportChat: React.FC = () => {
   const [activeSupport, setActiveSupport] = useState<SupportType>('emotional');
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [playingAudio, setPlayingAudio] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    // Create audio element with calming sounds
+    audioRef.current = new Audio();
+    audioRef.current.addEventListener('ended', () => setPlayingAudio(false));
+    
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -53,9 +68,21 @@ const SupportChat: React.FC = () => {
   ];
 
   const breathingExercises = [
-    { name: "4-7-8 Breathing", duration: "1 min", steps: "Inhale 4s, Hold 7s, Exhale 8s" },
-    { name: "Box Breathing", duration: "2 min", steps: "Inhale 4s, Hold 4s, Exhale 4s, Hold 4s" },
-    { name: "Calming Breath", duration: "30s", steps: "Deep inhale through nose, slow exhale through mouth" }
+    { 
+      name: "4-7-8 Breathing", 
+      totalSeconds: 60,
+      pattern: { inhale: 4, hold1: 7, exhale: 8 }
+    },
+    { 
+      name: "Box Breathing", 
+      totalSeconds: 120,
+      pattern: { inhale: 4, hold1: 4, exhale: 4, hold2: 4 }
+    },
+    { 
+      name: "Calming Breath", 
+      totalSeconds: 30,
+      pattern: { inhale: 3, exhale: 6 }
+    }
   ];
 
   const mentalHealthContacts = [
@@ -154,9 +181,40 @@ const SupportChat: React.FC = () => {
   };
 
   const playCalmingAudio = () => {
-    setPlayingAudio(true);
-    // Simulating audio playback
-    setTimeout(() => setPlayingAudio(false), 30000);
+    if (playingAudio) {
+      // Stop audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      setPlayingAudio(false);
+    } else {
+      // Play calming audio - using a web audio API to generate calming tones
+      if (audioRef.current) {
+        // Using a public calming sound URL
+        audioRef.current.src = 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=healing-equanimity-113073.mp3';
+        audioRef.current.play().catch(() => {
+          // Fallback: Use Web Audio API to generate a simple calming tone
+          const audioContext = new AudioContext();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.frequency.value = 432; // Calming frequency
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 30);
+          
+          oscillator.start();
+          oscillator.stop(audioContext.currentTime + 30);
+          
+          setPlayingAudio(true);
+          setTimeout(() => setPlayingAudio(false), 30000);
+        });
+        setPlayingAudio(true);
+      }
+    }
   };
 
   return (
@@ -211,16 +269,26 @@ const SupportChat: React.FC = () => {
                 </div>
                 <Sparkles className="w-4 h-4 text-naari-teal" />
               </div>
-              <p className="text-sm text-gray-300 mb-3">Tap here for a 30-second calming audio</p>
+              <p className="text-sm text-gray-300 mb-3">Tap to play/stop a 30-second calming audio</p>
               <button 
                 onClick={playCalmingAudio}
-                className={`w-full py-3 rounded-lg font-medium transition-all ${
+                className={`w-full py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
                   playingAudio 
-                    ? 'bg-naari-teal/30 text-naari-teal border border-naari-teal' 
+                    ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30' 
                     : 'bg-gradient-to-r from-naari-purple to-naari-teal text-white hover:shadow-glow-purple'
                 }`}
               >
-                {playingAudio ? '🎵 Playing...' : '🎧 Play Calming Audio'}
+                {playingAudio ? (
+                  <>
+                    <Square className="w-4 h-4" />
+                    Stop Audio
+                  </>
+                ) : (
+                  <>
+                    <Volume2 className="w-4 h-4" />
+                    Play Calming Audio
+                  </>
+                )}
               </button>
             </div>
 
@@ -248,18 +316,14 @@ const SupportChat: React.FC = () => {
                 <MessageCircle className="w-5 h-5 text-naari-teal" />
                 <h3 className="text-white font-medium">Breathing Exercises</h3>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {breathingExercises.map((exercise, idx) => (
-                  <div key={idx} className="glass-card p-3 rounded-lg hover:bg-white/5 transition-all cursor-pointer">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-white text-sm font-medium">{exercise.name}</p>
-                      <div className="flex items-center gap-1 text-naari-teal text-xs">
-                        <Clock className="w-3 h-3" />
-                        {exercise.duration}
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-400">{exercise.steps}</p>
-                  </div>
+                  <BreathingExercise
+                    key={idx}
+                    name={exercise.name}
+                    pattern={exercise.pattern}
+                    totalDuration={exercise.totalSeconds}
+                  />
                 ))}
               </div>
             </div>
