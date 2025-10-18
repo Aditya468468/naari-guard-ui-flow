@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Brain, AlertTriangle, Camera, CameraOff } from 'lucide-react';
-import { pipeline } from '@huggingface/transformers';
+import { supabase } from '@/integrations/supabase/client';
 
 type EmotionState = 'calm' | 'stressed' | 'panic';
 
@@ -13,7 +13,6 @@ const EmotionWidget: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const classifierRef = useRef<any>(null);
 
   const startCamera = async () => {
     try {
@@ -28,17 +27,8 @@ const EmotionWidget: React.FC = () => {
         videoRef.current.srcObject = stream;
         streamRef.current = stream;
         setCameraOn(true);
+        setIsLoading(false);
       }
-      
-      // Load the emotion detection model
-      if (!classifierRef.current) {
-        classifierRef.current = await pipeline(
-          'image-classification',
-          'Xenova/vit-base-patch16-224-in21k-finetuned-emotions'
-        );
-      }
-      
-      setIsLoading(false);
     } catch (err) {
       console.error('Camera error:', err);
       setError('Camera access denied. Please allow camera permissions.');
@@ -59,7 +49,7 @@ const EmotionWidget: React.FC = () => {
   };
 
   const analyzeEmotion = async () => {
-    if (!videoRef.current || !canvasRef.current || !classifierRef.current) return;
+    if (!videoRef.current || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -72,24 +62,31 @@ const EmotionWidget: React.FC = () => {
     ctx.drawImage(video, 0, 0);
 
     try {
-      const imageData = canvas.toDataURL('image/jpeg');
-      const result = await classifierRef.current(imageData);
+      const imageData = canvas.toDataURL('image/jpeg', 0.8);
       
-      if (result && result.length > 0) {
-        const topEmotion = result[0];
-        const confidence = topEmotion.score * 100;
+      const { data, error } = await supabase.functions.invoke('analyze-emotion', {
+        body: { image: imageData }
+      });
+
+      if (error) {
+        console.error('Emotion analysis error:', error);
+        return;
+      }
+
+      if (data?.emotion) {
+        const detectedEmotion = data.emotion.toLowerCase();
+        const confidence = data.confidence || 50;
         
-        // Map detected emotions to our states
-        const label = topEmotion.label.toLowerCase();
-        if (label.includes('angry') || label.includes('fear') || label.includes('sad')) {
+        if (detectedEmotion.includes('angry') || detectedEmotion.includes('fear') || 
+            detectedEmotion.includes('sad') || detectedEmotion.includes('disgust')) {
           setEmotion('panic');
           setStressLevel(Math.min(70 + confidence * 0.3, 100));
-        } else if (label.includes('neutral') || label.includes('surprise')) {
+        } else if (detectedEmotion.includes('neutral') || detectedEmotion.includes('surprise')) {
           setEmotion('stressed');
           setStressLevel(40 + confidence * 0.3);
         } else {
           setEmotion('calm');
-          setStressLevel(Math.max(confidence * 0.4, 10));
+          setStressLevel(Math.max(20, confidence * 0.4));
         }
       }
     } catch (err) {
