@@ -49,20 +49,31 @@ const EmotionWidget: React.FC = () => {
   };
 
   const analyzeEmotion = async () => {
-    if (!videoRef.current || !canvasRef.current) return;
+    if (!videoRef.current || !canvasRef.current || !cameraOn) {
+      console.log('Skipping analysis - camera not ready');
+      return;
+    }
 
     const canvas = canvasRef.current;
     const video = videoRef.current;
-    const ctx = canvas.getContext('2d');
     
+    // Make sure video is actually playing
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+      console.log('Video not ready yet');
+      return;
+    }
+    
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
-
     try {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+
       const imageData = canvas.toDataURL('image/jpeg', 0.8);
+      
+      console.log('Sending image for emotion analysis...');
       
       const { data, error } = await supabase.functions.invoke('analyze-emotion', {
         body: { image: imageData }
@@ -70,8 +81,11 @@ const EmotionWidget: React.FC = () => {
 
       if (error) {
         console.error('Emotion analysis error:', error);
+        setError('Failed to analyze emotion. Please try again.');
         return;
       }
+
+      console.log('Emotion analysis result:', data);
 
       if (data?.emotion) {
         const detectedEmotion = data.emotion.toLowerCase();
@@ -88,23 +102,26 @@ const EmotionWidget: React.FC = () => {
           setEmotion('calm');
           setStressLevel(Math.max(20, confidence * 0.4));
         }
+        setError(null);
       }
     } catch (err) {
       console.error('Emotion analysis error:', err);
+      setError('Analysis failed. Retrying...');
     }
   };
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
-    if (cameraOn) {
-      interval = setInterval(analyzeEmotion, 2000);
+    if (cameraOn && !isLoading) {
+      // Start analyzing after camera is fully ready
+      interval = setInterval(analyzeEmotion, 3000);
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [cameraOn]);
+  }, [cameraOn, isLoading]);
 
   useEffect(() => {
     return () => {
